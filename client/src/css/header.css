@@ -7,7 +7,7 @@
 #header {
   width: 100%;
   position: fixed;
-  color: color(var(--dark) a(100%));
+  color: color(var(--light) a(100%));
   padding: 0 1em;
   border-bottom: 1px solid color(var(--gray) a(35%));
 
