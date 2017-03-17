@@ -8,7 +8,7 @@ class Application extends Component {
     return (
       <div id='container'>
         <Header />
-        {/* <Globe /> */}
+        <Globe />
       </div>
     );
   }
