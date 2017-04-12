@@ -42,5 +42,6 @@ Store all your keys in ~/aws.
 - [Quickly Get Started with Kafka](http://www.bigendiandata.com/2016-09-30-Kafka-Quickstart/)
 - [How to Code for the Apache Kafka 0.9 API](https://www.youtube.com/watch?v=0ARmhmkQ9B8)
 - [Streaming Twitter Data using Kafka](https://acadgild.com/blog/streaming-twitter-data-using-kafka/)
+- [Processing Tweets with Kafka Streams](https://www.madewithtea.com/processing-tweets-with-kafka-streams.html)
 
 #### Cassandra
