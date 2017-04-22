@@ -31,8 +31,12 @@ class TStreamListener(tweepy.StreamListener):
         
         try:
                 twitter_json = json.dumps(status._json).encode('utf-8')
+                twitterFilterJSON = json.loads(twitter_json)
 
-                self.producer.send_messages('twitterstream', twitter_json)
+                if not twitterFilterJSON['text'].startswith('RT'):
+                    print twitterFilterJSON['text']
+                    
+                    self.producer.send_messages('twitterstream', twitter_json)
 
                 # print twitter_json
                 # self.producer.send_messages('twitterstream', twitter_json)
