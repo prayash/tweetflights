@@ -33,17 +33,15 @@ class TStreamListener(tweepy.StreamListener):
                 twitter_json = json.dumps(status._json).encode('utf-8')
                 twitterFilterJSON = json.loads(twitter_json)
 
-                if not twitterFilterJSON['text'].startswith('RT'):
+                if twitterFilterJSON["entities"]['user_mentions'] is not None and len(twitterFilterJSON["entities"]['user_mentions']) > 0:
                     if twitterFilterJSON['place'] is not None:
-                        if twitterFilterJSON["entities"]['user_mentions'] is not None:
+                        if not twitterFilterJSON['text'].startswith('RT'):
+
                             print (twitterFilterJSON['text'])
-                    
+                            # print twitter_json
+
                             self.producer.send_messages('twitterstream', twitter_json)
 
-                # print twitter_json
-                # self.producer.send_messages('twitterstream', twitter_json)
-                # TODO: Transform created_at to Date objects before insertion
-                # tweet_id = twitter_collection.insert(twitter_json)
         except Exception as e:
                 # Catch any unicode errors while printing to console
                 # and just ignore them to avoid breaking application.
