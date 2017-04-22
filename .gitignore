@@ -8,6 +8,7 @@
 
 # production
 /build
+/kafka
 
 # misc
 .DS_Store

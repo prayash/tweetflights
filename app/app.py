@@ -30,12 +30,18 @@ class TStreamListener(tweepy.StreamListener):
         We asynchronously push this data to Kafka queue.
         """
 
-        msg = status.text.encode('utf-8')
         try:
-            self.producer.send_messages('twitterstream', msg)
+                twitter_json = status._json
+                print twitter_json
+                # self.producer.send_messages('twitterstream', twitter_json)
+                # TODO: Transform created_at to Date objects before insertion
+                # tweet_id = twitter_collection.insert(twitter_json)
         except Exception as e:
-            print(e)
-            return False
+                # Catch any unicode errors while printing to console
+                # and just ignore them to avoid breaking application.
+                pass
+                print(e)
+                return False
 
         return True
 
@@ -70,6 +76,10 @@ if __name__ == '__main__':
     # consumer_secret = config['DEFAULT']['consumerSecret']
     # access_key = config['DEFAULT']['accessToken']
     # access_secret = config['DEFAULT']['accessTokenSecret']
+    consumer_key = 'z7mSIufiB7Lom9dJyvQ3blEDR'
+    consumer_secret = 'V3Xq4WxpJAo6LWjRLipThKC10wMZHDHfhZQNzDYl6Kg0CIBlgA'
+    access_key = '717173546-jgCRHCgVeW9ShqRxRPUko1eEX0dW8v0VM0UrNiLS'
+    access_secret = 'kM2ENz91HTDVuC2NajwE1cD7rZVa52hPSgAQP7Y9lEfLZ'
 
     # Create auth object to consume tweepy's API.
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -81,4 +91,4 @@ if __name__ == '__main__':
 
     # Custom filters!
     #stream.filter(track = ['love', 'hate'], languages = ['en'])
-    stream.filter(locations=[-180,-90,180,90], languages = ['en'])
+    stream.filter(track=['@'], languages = ['en'])
