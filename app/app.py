@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # Read the auth keys from 'keys.txt' file - only store locally!
     config = configparser.ConfigParser()
     config.read('keys.txt')
-    
+
     # consumer_key = config['DEFAULT']['consumerKey']
     # consumer_secret = config['DEFAULT']['consumerSecret']
     # access_key = config['DEFAULT']['accessToken']
