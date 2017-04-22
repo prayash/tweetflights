@@ -29,12 +29,12 @@ class TStreamListener(tweepy.StreamListener):
         """ This method is called whenever new data arrives from the live stream.
         We asynchronously push this data to Kafka queue.
         """
-        msg = status.text.encode('utf-8')
+        # msg = status.text.encode('utf-8')
         
         try:
-                twitter_json = status._json
-                self.producer.send_messages('twitterstream', msg)
-                print twitter_json
+                twitter_json = json.dumps(status._json).encode('utf-8')
+                self.producer.send_messages('twitterstream', twitter_json)
+                # print twitter_json
                 # self.producer.send_messages('twitterstream', twitter_json)
                 # TODO: Transform created_at to Date objects before insertion
                 # tweet_id = twitter_collection.insert(twitter_json)
