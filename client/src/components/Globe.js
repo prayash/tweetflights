@@ -1,9 +1,14 @@
-import * as THREE from 'three';
 import React from 'react';
+import * as THREE from 'three';
+import TWEEN from 'tween.js';
+import { MeshLine, MeshLineMaterial } from 'three.meshline';
 import TBControls from 'three-trackballcontrols';
 import { EffectComposer, RenderPass, MaskPass, ClearMaskPass } from "postprocessing";
 
-// import effects from '../effects';
+import DAT from '../lib/dat.globe';
+import '../lib/effects';
+
+var data = require('../lib/bunk.json');
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import basic from 'raw!../shaders/basic.vert';
@@ -25,6 +30,7 @@ let controls,
     sceneComposer;
 
 let globe;
+let boid, birds;
 
 let startTime = new Date().getTime();
 
@@ -43,6 +49,65 @@ class Globe extends React.Component {
     this.loadAndCreate();
     this.setupLights();
     this.bindEventListeners();
+    this.renderMeshLine();
+
+    var years = ['1990','1995','2000'];
+    // var container = document.getElementById('container');
+    var globe = new DAT.Globe(this.refs.container);
+    var tweens = [];
+
+    // var settime = function(globe, t) {
+    //   return function() {
+        let globeTween = new TWEEN.Tween(globe)
+          .to({time: 2/years.length}, 500)
+          .easing(TWEEN.Easing.Cubic.EaseOut)
+          .start();
+    //     var y = document.getElementById('year'+years[t]);
+    //     if (y.getAttribute('class') === 'year active') {
+    //       return;
+    //     }
+    //     var yy = document.getElementsByClassName('year');
+    //     for(i=0; i<yy.length; i++) {
+    //       yy[i].setAttribute('class','year');
+    //     }
+    //     y.setAttribute('class', 'year active');
+    //   };
+    // };
+
+    // for(var i = 0; i<years.length; i++) {
+    //   var y = document.getElementById('year'+years[i]);
+    //   y.addEventListener('mouseover', settime(globe,i), false);
+    // }
+
+    // var data = JSON.parse(responseText);
+    // window.data = data;
+    for (var i = 0; i < data.length ; i++) {
+      globe.addData(data[i][1], { format: 'magnitude', name: data[i][0], animated: true });
+    }
+
+    globe.createPoints();
+    // settime(globe,0)();
+    globe.animate();
+  }
+
+  renderMeshLine = () => {
+    var geometry = new THREE.Geometry();
+    for (var j = 0; j < Math.PI; j += 2 * Math.PI / 100) {
+      var v = new THREE.Vector3(Math.cos(j), Math.sin(j), 0);
+      geometry.vertices.push(v);
+    }
+
+    var line = new MeshLine();
+    line.setGeometry(geometry);
+
+    // line.setGeometry(geometry, (p) => 4 * 2); // makes width 2 * lineWidth
+    line.setGeometry( geometry, function( p ) { return 1 - p; } ); // makes width taper
+    // line.setGeometry( geometry, function( p ) { return 2 + Math.sin( 50 * p ); } ); // makes width sinusoidal
+
+    var material = new MeshLineMaterial();
+    var mesh = new THREE.Mesh(line.geometry, material); // this syntax could definitely be improved!
+    mesh.scale.multiplyScalar(60);
+    scene.add(mesh);
   }
 
   setupCamera = () => {
@@ -52,12 +117,8 @@ class Globe extends React.Component {
   }
 
   setupRenderer = () => {
-    renderer = new THREE.WebGLRenderer({
-      alpha: false,
-      logarithmicDepthBuffer: true,
-      antialias: true
-    });
-    renderer.setClearColor(0x222222, 0.55);
+    renderer = new THREE.WebGLRenderer({ alpha: false, logarithmicDepthBuffer: true, antialias: true });
+    renderer.setClearColor(0x1E1E1E, 1.0);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.autoClear = true;
@@ -114,17 +175,23 @@ class Globe extends React.Component {
   }
 
   setupLights = () => {
-    // let light = new THREE.PointLight(0xff0000, 1, 10000);
+    // scene.add(new THREE.AmbientLight(0xFFFFFF));
+
+    // let light = new THREE.PointLight(0xFFFFFF, 1, 10000);
     // light.position.set(80, 80, 400);
+    // scene.add(light);
+  }
+
+  rotateEarth = () => {
+    let ticks = new Date().getTime() - startTime;
+    globe.material.uniforms.fTime.value = ticks / 70000.0;
   }
 
   animate = () => {
     requestAnimationFrame(this.animate);
-
     controls.update();
-    let ticks = new Date().getTime() - startTime;
-    globe.material.uniforms.fTime.value = ticks / 70000.0;
 
+    this.rotateEarth();
     renderer.render(scene, camera);
   }
 
@@ -139,8 +206,7 @@ class Globe extends React.Component {
 
   bindEventListeners = () => {
     window.addEventListener('resize', () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+      const { innerWidth: width, innerHeight: height } = window;
 
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
