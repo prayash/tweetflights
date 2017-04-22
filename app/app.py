@@ -34,9 +34,11 @@ class TStreamListener(tweepy.StreamListener):
                 twitterFilterJSON = json.loads(twitter_json)
 
                 if not twitterFilterJSON['text'].startswith('RT'):
-                    print twitterFilterJSON['text']
+                    if twitterFilterJSON['place'] is not None:
+                        if twitterFilterJSON["entities"]['user_mentions'] is not None:
+                            print (twitterFilterJSON['text'])
                     
-                    self.producer.send_messages('twitterstream', twitter_json)
+                            self.producer.send_messages('twitterstream', twitter_json)
 
                 # print twitter_json
                 # self.producer.send_messages('twitterstream', twitter_json)
@@ -98,5 +100,4 @@ if __name__ == '__main__':
     # Custom filters!
     #stream.filter(track = ['love', 'hate'], languages = ['en'])
     stream.filter(track='screen_name', languages = ['en'], locations=[-167.2764, 5.4995, -52.2330, 83.1621])
-
 
