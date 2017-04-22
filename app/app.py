@@ -6,10 +6,8 @@ from kafka import SimpleProducer, KafkaClient
 
 class TStreamListener(tweepy.StreamListener):
     """ A class to read the twitter stream via tweepy and push it to a Kafka producer.
-
     We attach the tweepy.StreamListener instance to this class in order to publish
     live tweets to our Kafka producer.
-
     Attributes:
         api: An instance of StreamListener from the tweepy API.
         producer: A Kafka Producer to send messages to a consumer
@@ -33,7 +31,9 @@ class TStreamListener(tweepy.StreamListener):
         
         try:
                 twitter_json = json.dumps(status._json).encode('utf-8')
+
                 self.producer.send_messages('twitterstream', twitter_json)
+
                 # print twitter_json
                 # self.producer.send_messages('twitterstream', twitter_json)
                 # TODO: Transform created_at to Date objects before insertion
@@ -93,4 +93,6 @@ if __name__ == '__main__':
 
     # Custom filters!
     #stream.filter(track = ['love', 'hate'], languages = ['en'])
-    stream.filter(track=['@'], languages = ['en'])
+    stream.filter(track='screen_name', languages = ['en'], locations=[-167.2764, 5.4995, -52.2330, 83.1621])
+
+
