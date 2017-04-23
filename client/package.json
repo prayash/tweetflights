@@ -48,6 +48,8 @@
     "postprocessing": "^2.0.0",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
+    "socket.io": "^1.7.3",
+    "socket.io-client": "^1.7.3",
     "stats.js": "^0.17.0",
     "three": "^0.84.0",
     "three-trackballcontrols": "^0.0.5",

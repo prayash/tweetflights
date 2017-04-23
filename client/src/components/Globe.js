@@ -1,6 +1,7 @@
 import React from 'react';
 import * as THREE from 'three';
 import TWEEN from 'tween.js';
+import io from 'socket.io-client';
 import TBControls from 'three-trackballcontrols';
 import { MeshLine, MeshLineMaterial } from 'three.meshline';
 import { EffectComposer, RenderPass, MaskPass, ClearMaskPass } from "postprocessing";
@@ -24,7 +25,8 @@ const { innerWidth: width, innerHeight: height } = window;
 
 let camera, scene, renderer;
 
-let controls,
+let socket,
+    controls,
     blurScene,
     blurMaskScene,
     blurComposer,
@@ -37,71 +39,30 @@ let startTime = new Date().getTime();
 
 const EARTH_RADIUS = 50;
 const BLUE = '#1DA1F2';
+const RED = '#F21646'
 
-let a = {
-  lat: 40.014984,
-  long: -105.270546
+let testData = {
+  "text": "Hey @MarcosFlores85 we will be over to see you play borneo fc on the 14th of may",
+  'from': {
+    'lat': '40.014984',
+    'lon': '-105.270546'
+  },
+  'to': {
+    'lat': '27.700769',
+    'lon': '85.300140'
+  },
+  'sentiment': 'pos'
 };
 
-let b = {
-  lat: 27.700769,
-  long: 85.300140
-};
-
-let testData = { 
-  "text": "@ChrisKirouac @RT_com B.S. American Airlines lost my luggage in Buffalo.", 
-  "fromLocation": "Opportunity, WA",
-  "toLocation": "Ontario, Canada"
-};
-
-// var phiFrom = (a.lat) * Math.PI / 180;
-// var thetaFrom = (a.long) * Math.PI / 180;
-// var radius = 50;
-// var xF = radius * Math.cos(phiFrom) * Math.sin(thetaFrom);
-// var yF = radius * Math.sin(phiFrom);
-// var zF = radius * Math.cos(phiFrom) * Math.cos(thetaFrom);
-// var vF = new THREE.Vector3(xF, yF, zF);
-
-let vF = toWorld(a.lat, a.long, EARTH_RADIUS);
-let vT = toWorld(b.lat, b.long, EARTH_RADIUS);
-var dist = vF.distanceTo(vT);
-
-var cvT = vT.clone();
-var cvF = vF.clone();
-
-var xC = (0.5 * (vF.x + vT.x));
-var yC = (0.5 * (vF.y + vT.y));
-var zC = (0.5 * (vF.z + vT.z));
-
-var mid = new THREE.Vector3(xC, yC, zC);
-
-var smoothDist = map(dist, 0, 10, 0, 15/dist );
- 
-mid.setLength( EARTH_RADIUS * smoothDist );
- 
-cvT.add(mid);
-cvF.add(mid);
- 
-cvT.setLength(EARTH_RADIUS * smoothDist);
-cvF.setLength(EARTH_RADIUS * smoothDist);
-
-var curve = new THREE.CubicBezierCurve3(vF, cvF, cvT, vT);
-var geometry2 = new THREE.Geometry();
-geometry2.vertices = curve.getPoints(50);
-
-var material2 = new THREE.LineBasicMaterial({ color : BLUE, opacity: 0.5});
-
-// Create the final Object3d to add to the scene
-var curveObject = new THREE.Line(geometry2, material2);
-
-let paths = [];
-paths.push(curve);
-
-var sphereG = new THREE.SphereGeometry(1, 32, 32);
-var sphereM = new THREE.MeshBasicMaterial({ color: BLUE, transparent: true, shading: THREE.FlatShading, opacity: 0.5 });
-var pMesh = new THREE.Mesh(sphereG, sphereM);
-pMesh.position.set(vF.x, vF.y, vF.z);
-console.log(pMesh.position);
+// let testData = [{
+//   "text": "@ChrisKirouac @RT_com B.S. American Airlines lost my luggage in Buffalo.", 
+//   "fromLocation": "Opportunity, WA",
+//   "toLocation": "Ontario, Canada"
+// }, {
+//   "text": "Hey @MarcosFlores85 we will be over to see you play borneo fc on the 14th of may",
+//   "fromLocation": "Newcastle, New South Wales",
+//   "toLocation": "Rosario, Argentina"
+// }];
 
 // ********************************************************************************
 
@@ -121,6 +82,59 @@ class Globe extends React.Component {
     this.setupLights();
     this.bindEventListeners();
     this.renderMeshLine();
+    this.setupSocket();
+    this.drawPathOfTweet(testData);
+  }
+
+  setupSocket = () => {
+    console.log("Connecting to the node-kafka server...");
+    socket = io.connect('ws://127.0.0.1:1337');
+
+    socket.on('tweet', (t) => {
+      this.drawPathOfTweet(t);
+    });
+  }
+
+  drawPathOfTweet = (tweet) => {
+    console.log(tweet);
+    const { from, to, sentiment } = tweet;
+
+    let vF = toWorld(from.lat, from.lon, EARTH_RADIUS);
+    let vT = toWorld(to.lat, to.lon, EARTH_RADIUS);
+    var dist = vF.distanceTo(vT);
+
+    var cvT = vT.clone();
+    var cvF = vF.clone();
+
+    var xC = (0.5 * (vF.x + vT.x));
+    var yC = (0.5 * (vF.y + vT.y));
+    var zC = (0.5 * (vF.z + vT.z));
+
+    var mid = new THREE.Vector3(xC, yC, zC);
+
+    var smoothDist = map(dist, 0, 10, 0, 15/dist );
+    
+    mid.setLength( EARTH_RADIUS * smoothDist );
+    
+    cvT.add(mid);
+    cvF.add(mid);
+    
+    cvT.setLength(EARTH_RADIUS * smoothDist);
+    cvF.setLength(EARTH_RADIUS * smoothDist);
+
+    var curve = new THREE.CubicBezierCurve3(vF, cvF, cvT, vT);
+    var geometry2 = new THREE.Geometry();
+    geometry2.vertices = curve.getPoints(50);
+
+    var material2 = new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, opacity: 0.5});
+
+    // Create the final Object3d to add to the scene
+    var curveObject = new THREE.Line(geometry2, material2);
+    scene.add(curveObject);
+
+    setTimeout(() => {
+      socket.emit('ack');
+    }, 2000);
   }
 
   renderMeshLine = () => {
@@ -140,10 +154,9 @@ class Globe extends React.Component {
     // line.setGeometry( geometry, function( p ) { return 2 + Math.sin( 50 * p ); } ); // makes width sinusoidal
 
     var material = new MeshLineMaterial();
-    var mesh = new THREE.Mesh(line.geometry, material); // this syntax could definitely be improved!
+    var mesh = new THREE.Mesh(line.geometry, material);
     mesh.scale.multiplyScalar(60);
     // scene.add(mesh);
-    scene.add(curveObject);
   }
 
   setupCamera = () => {
@@ -208,7 +221,6 @@ class Globe extends React.Component {
 
     globe = new THREE.Mesh(geometry, material);
     scene.add(globe);
-    scene.add(pMesh);
   }
 
   setupLights = () => {
@@ -228,7 +240,7 @@ class Globe extends React.Component {
     requestAnimationFrame(this.animate);
     controls.update();
 
-    this.rotateCamera();
+    // this.rotateCamera();
     renderer.render(scene, camera);
   }
 
