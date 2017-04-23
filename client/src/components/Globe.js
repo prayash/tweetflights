@@ -83,7 +83,7 @@ class Globe extends React.Component {
     this.bindEventListeners();
     this.renderMeshLine();
     this.setupSocket();
-    this.drawPathOfTweet(testData);
+    // this.drawPathOfTweet(testData);
   }
 
   setupSocket = () => {
@@ -92,6 +92,10 @@ class Globe extends React.Component {
 
     socket.on('tweet', (t) => {
       this.drawPathOfTweet(t);
+
+      setTimeout(() => {
+        socket.emit('ack');
+    }, 2000);
     });
   }
 
@@ -112,9 +116,9 @@ class Globe extends React.Component {
 
     var mid = new THREE.Vector3(xC, yC, zC);
 
-    var smoothDist = map(dist, 0, 10, 0, 15/dist );
+    var smoothDist = map(dist, 0, 10, 0, 15 / dist);
     
-    mid.setLength( EARTH_RADIUS * smoothDist );
+    mid.setLength(EARTH_RADIUS * smoothDist);
     
     cvT.add(mid);
     cvF.add(mid);
@@ -126,15 +130,26 @@ class Globe extends React.Component {
     var geometry2 = new THREE.Geometry();
     geometry2.vertices = curve.getPoints(50);
 
-    var material2 = new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, opacity: 0.5});
+    var material2 = new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, opacity: 0.0, transparent: true });
 
     // Create the final Object3d to add to the scene
     var curveObject = new THREE.Line(geometry2, material2);
     scene.add(curveObject);
+    this.animatePath(0, 1, 2000, curveObject);
+  }
 
-    setTimeout(() => {
-      socket.emit('ack');
-    }, 2000);
+  animatePath = (start, end, duration, obj) => {
+    // console.log("Zooming from:", start, "to", end);
+    console.log(obj.material.opacity);
+    let o = { opacity: start };
+    let oTarget = { opacity: end };
+    let tween = new TWEEN.Tween(o)
+      .to(oTarget, duration)
+      .easing(TWEEN.Easing.Cubic.Out)
+      .start()
+      .onUpdate(() => {
+        obj.material.opacity = o.opacity;
+      });
   }
 
   renderMeshLine = () => {
@@ -239,6 +254,7 @@ class Globe extends React.Component {
   animate = () => {
     requestAnimationFrame(this.animate);
     controls.update();
+    TWEEN.update();
 
     // this.rotateCamera();
     renderer.render(scene, camera);
