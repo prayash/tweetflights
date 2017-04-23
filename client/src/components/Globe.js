@@ -8,7 +8,8 @@ import { EffectComposer, RenderPass, MaskPass, ClearMaskPass } from "postprocess
 import DAT from '../lib/dat.globe';
 import '../lib/effects';
 
-var data = require('../lib/bunk.json');
+// var sampleData = require('../lib/bunk.json');
+import sampleData from '../lib/bunk.json';
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import basic from 'raw!../shaders/basic.vert';
@@ -18,6 +19,8 @@ import earth from 'raw!../shaders/earth.frag';
 import earthTexture from './../../assets/textures/earth_texture_2048.jpg';
 import cloudsTexture from './../../assets/textures/clouds_texture_2048.jpg';
 import earthBumps from './../../assets/textures/earth_bumps_2048.jpg';
+
+// ********************************************************************************
 
 const { innerWidth: width, innerHeight: height } = window;
 
@@ -33,6 +36,72 @@ let globe;
 let boid, birds;
 
 let startTime = new Date().getTime();
+
+const EARTH_RADIUS = 50;
+
+let a = {
+  lat: 40.014984,
+  long: -105.270546
+};
+
+let b = {
+  lat: 27.700769,
+  long: 85.300140
+};
+
+function toWorld(lat, lng, radius) {
+  var phi = (90 - lat) * Math.PI / 180;
+  var theta = (180 - lng) * Math.PI / 180;
+
+  let x = -1 * radius * Math.sin(phi) * Math.cos(theta);
+  let y = radius * Math.cos(phi);
+  let z = -1 * radius * Math.sin(phi) * Math.sin(theta);
+
+  return new THREE.Vector3(x, y, z);
+}
+
+function map( x,  in_min,  in_max,  out_min,  out_max){
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+// var phiFrom = (a.lat) * Math.PI / 180;
+// var thetaFrom = (a.long) * Math.PI / 180;
+// var radius = 50;
+// var xF = radius * Math.cos(phiFrom) * Math.sin(thetaFrom);
+// var yF = radius * Math.sin(phiFrom);
+// var zF = radius * Math.cos(phiFrom) * Math.cos(thetaFrom);
+// var vF = new THREE.Vector3(xF, yF, zF);
+
+let vF = toWorld(a.lat, a.long, EARTH_RADIUS);
+let vT = toWorld(b.lat, b.long, EARTH_RADIUS);
+var dist = vF.distanceTo(vT);
+
+var cvT = vT.clone();
+var cvF = vF.clone();
+
+var xC = (0.5 * (vF.x + vT.x));
+var yC = (0.5 * (vF.y + vT.y));
+var zC = (0.5 * (vF.z + vT.z));
+
+var mid = new THREE.Vector3(xC, yC, zC);
+
+var smoothDist = map(dist, 0, 10, 0, 15/dist );
+ 
+mid.setLength( EARTH_RADIUS * smoothDist );
+ 
+cvT.add(mid);
+cvF.add(mid);
+ 
+cvT.setLength(EARTH_RADIUS * smoothDist);
+cvF.setLength(EARTH_RADIUS * smoothDist);
+
+var sphereG = new THREE.SphereGeometry(1, 32, 32);
+var sphereM = new THREE.MeshBasicMaterial({ color: '#FFFFFF', transparent: true, shading: THREE.FlatShading});
+var pMesh = new THREE.Mesh(sphereG, sphereM);
+pMesh.position.set(vF.x, vF.y, vF.z);
+console.log(pMesh.position);
+
+// ********************************************************************************
 
 class Globe extends React.Component {
   constructor(props) {
@@ -50,58 +119,22 @@ class Globe extends React.Component {
     this.setupLights();
     this.bindEventListeners();
     this.renderMeshLine();
-
-    var years = ['1990','1995','2000'];
-    // var container = document.getElementById('container');
-    var globe = new DAT.Globe(this.refs.container);
-    var tweens = [];
-
-    // var settime = function(globe, t) {
-    //   return function() {
-        let globeTween = new TWEEN.Tween(globe)
-          .to({time: 2/years.length}, 500)
-          .easing(TWEEN.Easing.Cubic.EaseOut)
-          .start();
-    //     var y = document.getElementById('year'+years[t]);
-    //     if (y.getAttribute('class') === 'year active') {
-    //       return;
-    //     }
-    //     var yy = document.getElementsByClassName('year');
-    //     for(i=0; i<yy.length; i++) {
-    //       yy[i].setAttribute('class','year');
-    //     }
-    //     y.setAttribute('class', 'year active');
-    //   };
-    // };
-
-    // for(var i = 0; i<years.length; i++) {
-    //   var y = document.getElementById('year'+years[i]);
-    //   y.addEventListener('mouseover', settime(globe,i), false);
-    // }
-
-    // var data = JSON.parse(responseText);
-    // window.data = data;
-    for (var i = 0; i < data.length ; i++) {
-      globe.addData(data[i][1], { format: 'magnitude', name: data[i][0], animated: true });
-    }
-
-    globe.createPoints();
-    // settime(globe,0)();
-    globe.animate();
   }
 
   renderMeshLine = () => {
     var geometry = new THREE.Geometry();
-    for (var j = 0; j < Math.PI; j += 2 * Math.PI / 100) {
+    for (var j = 0; j < Math.PI * 2; j += 2 * Math.PI / 100) {
       var v = new THREE.Vector3(Math.cos(j), Math.sin(j), 0);
       geometry.vertices.push(v);
+      // console.log(v);
     }
+
 
     var line = new MeshLine();
     line.setGeometry(geometry);
 
     // line.setGeometry(geometry, (p) => 4 * 2); // makes width 2 * lineWidth
-    line.setGeometry( geometry, function( p ) { return 1 - p; } ); // makes width taper
+    line.setGeometry(geometry, (p => 1 - p)); // makes width taper
     // line.setGeometry( geometry, function( p ) { return 2 + Math.sin( 50 * p ); } ); // makes width sinusoidal
 
     var material = new MeshLineMaterial();
@@ -157,7 +190,7 @@ class Globe extends React.Component {
     cloudsTexture.wrapS = cloudsTexture.wrapT = THREE.RepeatWrapping;
     bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
 
-    let geometry = new THREE.SphereGeometry(50, 50, 50);
+    let geometry = new THREE.SphereGeometry(EARTH_RADIUS, EARTH_RADIUS, EARTH_RADIUS);
     let material = new THREE.ShaderMaterial({
       uniforms: {
         tEarth:  { value: globeTexture },
@@ -172,6 +205,7 @@ class Globe extends React.Component {
 
     globe = new THREE.Mesh(geometry, material);
     scene.add(globe);
+    scene.add(pMesh);
   }
 
   setupLights = () => {
@@ -184,7 +218,7 @@ class Globe extends React.Component {
 
   rotateEarth = () => {
     let ticks = new Date().getTime() - startTime;
-    globe.material.uniforms.fTime.value = ticks / 70000.0;
+    globe.material.uniforms.fTime.value = ticks / 700000.0;
   }
 
   animate = () => {
