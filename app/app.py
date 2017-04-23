@@ -33,12 +33,25 @@ class TStreamListener(tweepy.StreamListener):
                 twitter_json = json.dumps(status._json).encode('utf-8')
                 twitterFilterJSON = json.loads(twitter_json)
 
-                if not twitterFilterJSON['text'].startswith('RT'):
+                if twitterFilterJSON["entities"]['user_mentions'] is not None and len(twitterFilterJSON["entities"]['user_mentions']) > 0:
                     if twitterFilterJSON['place'] is not None:
-                        if twitterFilterJSON["entities"]['user_mentions'] is not None:
+                        if not twitterFilterJSON['text'].startswith('RT'):
                             print (twitterFilterJSON['text'])
-                    
+                            to_id = twitterFilterJSON["entities"]['user_mentions'][0]["id_str"]
+                            #print to_id
+
+                            twitter_id_json = json.dumps(api.get_user(to_id)._json).encode('utf-8')
+                            #print twitter_id_json
+
+                            toId_filter_JSON = json.loads(twitter_id_json)
+
+                            #if toId_filter_JSON["place"] is not None:
+                                #print toId_filter_JSON["location"]
+
+                            
                             self.producer.send_messages('twitterstream', twitter_json)
+
+
 
                 # print twitter_json
                 # self.producer.send_messages('twitterstream', twitter_json)
