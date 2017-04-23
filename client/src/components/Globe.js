@@ -1,15 +1,12 @@
 import React from 'react';
 import * as THREE from 'three';
 import TWEEN from 'tween.js';
-import { MeshLine, MeshLineMaterial } from 'three.meshline';
 import TBControls from 'three-trackballcontrols';
+import { MeshLine, MeshLineMaterial } from 'three.meshline';
 import { EffectComposer, RenderPass, MaskPass, ClearMaskPass } from "postprocessing";
 
-import DAT from '../lib/dat.globe';
-import '../lib/effects';
-
-// var sampleData = require('../lib/bunk.json');
-import sampleData from '../lib/bunk.json';
+import { effects } from '../lib/effects';
+import { toWorld, map } from '../lib/utils';
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import basic from 'raw!../shaders/basic.vert';
@@ -38,6 +35,7 @@ let boid, birds;
 let startTime = new Date().getTime();
 
 const EARTH_RADIUS = 50;
+const BLUE = '#1DA1F2';
 
 let a = {
   lat: 40.014984,
@@ -49,20 +47,6 @@ let b = {
   long: 85.300140
 };
 
-function toWorld(lat, lng, radius) {
-  var phi = (90 - lat) * Math.PI / 180;
-  var theta = (180 - lng) * Math.PI / 180;
-
-  let x = -1 * radius * Math.sin(phi) * Math.cos(theta);
-  let y = radius * Math.cos(phi);
-  let z = -1 * radius * Math.sin(phi) * Math.sin(theta);
-
-  return new THREE.Vector3(x, y, z);
-}
-
-function map( x,  in_min,  in_max,  out_min,  out_max){
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
 
 // var phiFrom = (a.lat) * Math.PI / 180;
 // var thetaFrom = (a.long) * Math.PI / 180;
@@ -95,8 +79,20 @@ cvF.add(mid);
 cvT.setLength(EARTH_RADIUS * smoothDist);
 cvF.setLength(EARTH_RADIUS * smoothDist);
 
+var curve = new THREE.CubicBezierCurve3(vF, cvF, cvT, vT);
+var geometry2 = new THREE.Geometry();
+geometry2.vertices = curve.getPoints(50);
+
+var material2 = new THREE.LineBasicMaterial({ color : BLUE, opacity: 0.5});
+
+// Create the final Object3d to add to the scene
+var curveObject = new THREE.Line(geometry2, material2);
+
+let paths = [];
+paths.push(curve);
+
 var sphereG = new THREE.SphereGeometry(1, 32, 32);
-var sphereM = new THREE.MeshBasicMaterial({ color: '#FFFFFF', transparent: true, shading: THREE.FlatShading});
+var sphereM = new THREE.MeshBasicMaterial({ color: BLUE, transparent: true, shading: THREE.FlatShading, opacity: 0.5 });
 var pMesh = new THREE.Mesh(sphereG, sphereM);
 pMesh.position.set(vF.x, vF.y, vF.z);
 console.log(pMesh.position);
@@ -140,7 +136,8 @@ class Globe extends React.Component {
     var material = new MeshLineMaterial();
     var mesh = new THREE.Mesh(line.geometry, material); // this syntax could definitely be improved!
     mesh.scale.multiplyScalar(60);
-    scene.add(mesh);
+    // scene.add(mesh);
+    scene.add(curveObject);
   }
 
   setupCamera = () => {
@@ -151,7 +148,7 @@ class Globe extends React.Component {
 
   setupRenderer = () => {
     renderer = new THREE.WebGLRenderer({ alpha: false, logarithmicDepthBuffer: true, antialias: true });
-    renderer.setClearColor(0x1E1E1E, 1.0);
+    renderer.setClearColor(0x1A1A1A, 1.0);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.autoClear = true;
