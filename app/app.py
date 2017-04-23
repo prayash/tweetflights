@@ -44,11 +44,13 @@ class TStreamListener(tweepy.StreamListener):
                             # print toUserId_filter_JSON
 
                             if toUserId_filter_JSON["profile_location"] is not None:
-                                print (twitterFilterJSON['text'])
-                                print "TO:" + toUserId_filter_JSON["profile_location"]['name']
-                                print "From:" + str(twitterFilterJSON['place']['full_name'])
+                                # print (twitterFilterJSON['text'])
+                                # print "TO:" + toUserId_filter_JSON["profile_location"]['name']
+                                # print "From:" + str(twitterFilterJSON['place']['full_name'])
 
-                                self.producer.send_messages('twitterstream', twitter_json)
+                                tweetJSON = "{\"text\": \"" + twitterFilterJSON['text'].encode('utf-8') + "\", \"fromLocation\": \"" + twitterFilterJSON['place']['full_name'].encode('utf-8') + "\", \"toLocation\": \"" + toUserId_filter_JSON["profile_location"]['name'].encode('utf-8') + "\" }".encode('utf-8')
+                                print tweetJSON
+                                self.producer.send_messages('twitterstream', tweetJSON)
 
 
         except Exception as e:
@@ -106,5 +108,5 @@ if __name__ == '__main__':
 
     # Custom filters!
     #stream.filter(track = ['love', 'hate'], languages = ['en'])
-    stream.filter(languages = ['en'], locations=[-180, -90, 180, 90])
+    stream.filter(languages = ['en','fr'], locations=[-180, -90, 180, 90])
 
