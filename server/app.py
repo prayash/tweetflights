@@ -2,6 +2,7 @@ import json
 import tweepy
 import configparser
 from kafka import SimpleProducer, KafkaClient
+from geopy.geocoders import Nominatim
 
 
 class TStreamListener(tweepy.StreamListener):
@@ -14,6 +15,7 @@ class TStreamListener(tweepy.StreamListener):
     """
 
     def __init__(self, api):
+        self.geolocator = Nominatim()
         self.api = api
         super(tweepy.StreamListener, self).__init__()
 
@@ -48,7 +50,10 @@ class TStreamListener(tweepy.StreamListener):
                             # print "TO:" + toUserId_filter_JSON["profile_location"]['name']
                             # print "From:" + str(twitterFilterJSON['place']['full_name'])
 
-                            tweetJSON = "{\"text\": \"" + twitterFilterJSON['text'].encode('utf-8') + "\", \"fromLocation\": \"" + twitterFilterJSON['place']['full_name'].encode('utf-8') + "\", \"toLocation\": \"" + toUserId_filter_JSON["profile_location"]['name'].encode('utf-8') + "\" }".encode('utf-8')
+                            toLocationCoordinates = self.geolocator.geocode(toUserId_filter_JSON["profile_location"]['name'].encode('utf-8'))
+                            fromLocationCoordinates = self.geolocator.geocode(twitterFilterJSON['place']['full_name'].encode('utf-8'))
+
+                            tweetJSON = "{\"text\": \"" + twitterFilterJSON['text'].encode('utf-8') + "\", \"fromLocation\": \"" + twitterFilterJSON['place']['full_name'].encode('utf-8') + "\", \"fromLocationcoordinates\": \"" + str(fromLocationCoordinates.latitude) + "," + str(fromLocationCoordinates.longitude) + "\", \"toLocation\": \"" + toUserId_filter_JSON["profile_location"]['name'].encode('utf-8') + "\", \"toLocationcoordinates\": \"" + str(toLocationCoordinates.latitude) + "," + str(toLocationCoordinates.longitude) + "\" }".encode('utf-8')
                             print tweetJSON
                             self.producer.send_messages('twitterstream', tweetJSON)
 
