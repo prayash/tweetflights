@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "kafka-node": "^1.6.0",
+    "optimist": "^0.6.1"
+  }
+}
