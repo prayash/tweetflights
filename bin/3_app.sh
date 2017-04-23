@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
-python ~/A-Bit-of-Big-Data/server/app.py
-
+while true ; do
+    python ~/A-Bit-of-Big-Data/server/app.py
+done
