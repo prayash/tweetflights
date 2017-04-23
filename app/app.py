@@ -36,27 +36,20 @@ class TStreamListener(tweepy.StreamListener):
                 if twitterFilterJSON["entities"]['user_mentions'] is not None and len(twitterFilterJSON["entities"]['user_mentions']) > 0:
                     if twitterFilterJSON['place'] is not None:
                         if not twitterFilterJSON['text'].startswith('RT'):
-                            print (twitterFilterJSON['text'])
-                            to_id = twitterFilterJSON["entities"]['user_mentions'][0]["id_str"]
-                            #print to_id
-
-                            twitter_id_json = json.dumps(api.get_user(to_id)._json).encode('utf-8')
-                            #print twitter_id_json
-
-                            toId_filter_JSON = json.loads(twitter_id_json)
-
-                            #if toId_filter_JSON["place"] is not None:
-                                #print toId_filter_JSON["location"]
-
                             
-                            self.producer.send_messages('twitterstream', twitter_json)
+                            toUser_id = twitterFilterJSON["entities"]['user_mentions'][0]["id_str"]
 
+                            twitter_id_json = json.dumps(api.get_user(toUser_id)._json).encode('utf-8')
+                            toUserId_filter_JSON = json.loads(twitter_id_json)
+                            # print toUserId_filter_JSON
 
+                            if toUserId_filter_JSON["profile_location"] is not None:
+                                print (twitterFilterJSON['text'])
+                                print "TO:" + toUserId_filter_JSON["profile_location"]['name']
+                                print "From:" + str(twitterFilterJSON['place']['full_name'])
 
-                # print twitter_json
-                # self.producer.send_messages('twitterstream', twitter_json)
-                # TODO: Transform created_at to Date objects before insertion
-                # tweet_id = twitter_collection.insert(twitter_json)
+                                self.producer.send_messages('twitterstream', twitter_json)
+
 
         except Exception as e:
                 # Catch any unicode errors while printing to console
@@ -113,5 +106,5 @@ if __name__ == '__main__':
 
     # Custom filters!
     #stream.filter(track = ['love', 'hate'], languages = ['en'])
-    stream.filter(track='screen_name', languages = ['en'], locations=[-167.2764, 5.4995, -52.2330, 83.1621])
+    stream.filter(languages = ['en'], locations=[-180, -90, 180, 90])
 
