@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-python server/app.py
+python ~/A-Bit-of-Big-Data/server/app.py
+

@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-node server/kafka-node.js
+node ~/A-Bit-of-Big-Data/server/kafka-node.js
