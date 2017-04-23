@@ -30,35 +30,35 @@ class TStreamListener(tweepy.StreamListener):
         # msg = status.text.encode('utf-8')
         
         try:
-                twitter_json = json.dumps(status._json).encode('utf-8')
-                twitterFilterJSON = json.loads(twitter_json)
+            twitter_json = json.dumps(status._json).encode('utf-8')
+            twitterFilterJSON = json.loads(twitter_json)
 
-                if twitterFilterJSON["entities"]['user_mentions'] is not None and len(twitterFilterJSON["entities"]['user_mentions']) > 0:
-                    if twitterFilterJSON['place'] is not None:
-                        if not twitterFilterJSON['text'].startswith('RT'):
-                            
-                            toUser_id = twitterFilterJSON["entities"]['user_mentions'][0]["id_str"]
+            if twitterFilterJSON["entities"]['user_mentions'] is not None and len(twitterFilterJSON["entities"]['user_mentions']) > 0:
+                if twitterFilterJSON['place'] is not None:
+                    if not twitterFilterJSON['text'].startswith('RT'):
 
-                            twitter_id_json = json.dumps(api.get_user(toUser_id)._json).encode('utf-8')
-                            toUserId_filter_JSON = json.loads(twitter_id_json)
-                            # print toUserId_filter_JSON
+                        toUser_id = twitterFilterJSON["entities"]['user_mentions'][0]["id_str"]
 
-                            if toUserId_filter_JSON["profile_location"] is not None:
-                                # print (twitterFilterJSON['text'])
-                                # print "TO:" + toUserId_filter_JSON["profile_location"]['name']
-                                # print "From:" + str(twitterFilterJSON['place']['full_name'])
+                        twitter_id_json = json.dumps(api.get_user(toUser_id)._json).encode('utf-8')
+                        toUserId_filter_JSON = json.loads(twitter_id_json)
+                        # print toUserId_filter_JSON
 
-                                tweetJSON = "{\"text\": \"" + twitterFilterJSON['text'].encode('utf-8') + "\", \"fromLocation\": \"" + twitterFilterJSON['place']['full_name'].encode('utf-8') + "\", \"toLocation\": \"" + toUserId_filter_JSON["profile_location"]['name'].encode('utf-8') + "\" }".encode('utf-8')
-                                print tweetJSON
-                                self.producer.send_messages('twitterstream', tweetJSON)
+                        if toUserId_filter_JSON["profile_location"] is not None:
+                            # print (twitterFilterJSON['text'])
+                            # print "TO:" + toUserId_filter_JSON["profile_location"]['name']
+                            # print "From:" + str(twitterFilterJSON['place']['full_name'])
+
+                            tweetJSON = "{\"text\": \"" + twitterFilterJSON['text'].encode('utf-8') + "\", \"fromLocation\": \"" + twitterFilterJSON['place']['full_name'].encode('utf-8') + "\", \"toLocation\": \"" + toUserId_filter_JSON["profile_location"]['name'].encode('utf-8') + "\" }".encode('utf-8')
+                            print tweetJSON
+                            self.producer.send_messages('twitterstream', tweetJSON)
 
 
         except Exception as e:
-                # Catch any unicode errors while printing to console
-                # and just ignore them to avoid breaking application.
-                pass
-                print(e)
-                return False
+            # Catch any unicode errors while printing to console
+            # and just ignore them to avoid breaking application.
+            pass
+            print(e)
+            return False
 
         return True
 

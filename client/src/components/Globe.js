@@ -8,6 +8,7 @@ import { EffectComposer, RenderPass, MaskPass, ClearMaskPass } from "postprocess
 import { effects } from '../lib/effects';
 import { toWorld, map } from '../lib/utils';
 
+/* eslint-disable */
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import basic from 'raw!../shaders/basic.vert';
 // eslint-disable-next-line import/no-webpack-loader-syntax
@@ -47,6 +48,11 @@ let b = {
   long: 85.300140
 };
 
+let testData = { 
+  "text": "@ChrisKirouac @RT_com B.S. American Airlines lost my luggage in Buffalo.", 
+  "fromLocation": "Opportunity, WA",
+  "toLocation": "Ontario, Canada"
+};
 
 // var phiFrom = (a.lat) * Math.PI / 180;
 // var thetaFrom = (a.long) * Math.PI / 180;
@@ -213,16 +219,16 @@ class Globe extends React.Component {
     // scene.add(light);
   }
 
-  rotateEarth = () => {
-    let ticks = new Date().getTime() - startTime;
-    globe.material.uniforms.fTime.value = ticks / 700000.0;
+  rotateCamera = () => {
+    camera.position.x += 0.1;
+    camera.lookAt(scene.position);
   }
 
   animate = () => {
     requestAnimationFrame(this.animate);
     controls.update();
 
-    this.rotateEarth();
+    this.rotateCamera();
     renderer.render(scene, camera);
   }
 
