@@ -53,5 +53,12 @@ Store all your keys in ~/aws.
 - [How to Code for the Apache Kafka 0.9 API](https://www.youtube.com/watch?v=0ARmhmkQ9B8)
 - [Streaming Twitter Data using Kafka](https://acadgild.com/blog/streaming-twitter-data-using-kafka/)
 - [Processing Tweets with Kafka Streams](https://www.madewithtea.com/processing-tweets-with-kafka-streams.html)
+- [Streaming API request parameters](https://dev.twitter.com/streaming/overview/request-parameters)
+- [JSON encoder and decoder](https://docs.python.org/2/library/json.html)
+- [JSON Formatter](https://jsonformatter.org/)
+- [Tweepy API Reference](http://docs.tweepy.org/en/v3.5.0/api.html?highlight=location)
+- [Twitter Dev Docs - Public Streams](https://dev.twitter.com/streaming/public)
+- [Processing Twitter Data with Kafka Streams](http://www.opencore.com/blog/2016/7/kafka-streams-demo/)
+
 
 #### Cassandra
