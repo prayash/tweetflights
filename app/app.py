@@ -57,6 +57,7 @@ class TStreamListener(tweepy.StreamListener):
                 # self.producer.send_messages('twitterstream', twitter_json)
                 # TODO: Transform created_at to Date objects before insertion
                 # tweet_id = twitter_collection.insert(twitter_json)
+
         except Exception as e:
                 # Catch any unicode errors while printing to console
                 # and just ignore them to avoid breaking application.
