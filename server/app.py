@@ -1,6 +1,7 @@
 import json
 import tweepy
 import configparser
+import random
 from kafka import SimpleProducer, KafkaClient
 from geopy.geocoders import Nominatim
 
@@ -53,9 +54,11 @@ class TStreamListener(tweepy.StreamListener):
                             toLocationCoordinates = self.geolocator.geocode(toUserId_filter_JSON["profile_location"]['name'].encode('utf-8'))
                             fromLocationCoordinates = self.geolocator.geocode(twitterFilterJSON['place']['full_name'].encode('utf-8'))
 
-                            tweetJSON = "{\"text\": \"" + twitterFilterJSON['text'].encode('utf-8') + "\", \"fromLocation\": \"" + twitterFilterJSON['place']['full_name'].encode('utf-8') + "\", \"fromLocationcoordinates\": \"" + str(fromLocationCoordinates.latitude) + "," + str(fromLocationCoordinates.longitude) + "\", \"toLocation\": \"" + toUserId_filter_JSON["profile_location"]['name'].encode('utf-8') + "\", \"toLocationcoordinates\": \"" + str(toLocationCoordinates.latitude) + "," + str(toLocationCoordinates.longitude) + "\" }".encode('utf-8')
-                            print tweetJSON
-                            self.producer.send_messages('twitterstream', tweetJSON)
+                            if toLocationCoordinates.latitude != None and toLocationCoordinates.latitude != None and fromLocationCoordinates.latitude != None and fromLocationCoordinates.longitude != None:
+
+                                tweetJSON = "{\"text\": \"" + twitterFilterJSON['text'].encode('utf-8') + "\", \"language\": \"" + twitterFilterJSON['lang'].encode('utf-8') + "\", \"fromLocation\": \"" + twitterFilterJSON['place']['full_name'].encode('utf-8') + "\", \"fromLocationcoordinates\": \"" + str(fromLocationCoordinates.latitude) + "," + str(fromLocationCoordinates.longitude) + "\", \"toLocation\": \"" + toUserId_filter_JSON["profile_location"]['name'].encode('utf-8') + "\", \"toLocationcoordinates\": \"" + str(toLocationCoordinates.latitude) + "," + str(toLocationCoordinates.longitude) + "\" }".encode('utf-8')
+                                print tweetJSON
+                                self.producer.send_messages('twitterstream', tweetJSON)
 
 
         except Exception as e:
@@ -98,10 +101,19 @@ if __name__ == '__main__':
     # consumer_secret = config['DEFAULT']['consumerSecret']
     # access_key = config['DEFAULT']['accessToken']
     # access_secret = config['DEFAULT']['accessTokenSecret']
-    consumer_key = 'z7mSIufiB7Lom9dJyvQ3blEDR'
-    consumer_secret = 'V3Xq4WxpJAo6LWjRLipThKC10wMZHDHfhZQNzDYl6Kg0CIBlgA'
-    access_key = '717173546-jgCRHCgVeW9ShqRxRPUko1eEX0dW8v0VM0UrNiLS'
-    access_secret = 'kM2ENz91HTDVuC2NajwE1cD7rZVa52hPSgAQP7Y9lEfLZ'
+
+    # Twitter API key arrays
+    consumerKey = ['z7mSIufiB7Lom9dJyvQ3blEDR', '3nU7p7BSVMGJi5MQFM6o1bYQy', 'VMV0HV4fmFvqHKnIQ9lVEkSRC']
+    consumerSecret = ['V3Xq4WxpJAo6LWjRLipThKC10wMZHDHfhZQNzDYl6Kg0CIBlgA',  'RDaA1vcB5DaBwCfVJ3wBuLW94LzZ3I1lWjQYf2bGzxEvOX8kii', 'WWCmy3VdQkZlhR5OF9FSSWWxevxyUmBidFsVJgJ3pnqZTBgTyk']
+    accessKey = ['717173546-jgCRHCgVeW9ShqRxRPUko1eEX0dW8v0VM0UrNiLS', '820303078486327296-baaGtIVl3rHf6kp0AKKP95XEQBHptmw', '2466981529-Q3Ij2PBoVsNlenDNfHEQgYqC6pRl9ibieyvqn1u']
+    accessSecret = ['kM2ENz91HTDVuC2NajwE1cD7rZVa52hPSgAQP7Y9lEfLZ', 'qBqzk9G75uxwS068ZRrB9uIil5kVHTZefnvffWB6ASoVT', 'S2G1LOZMNVcT92Vs7rQXRJw5aZcF3j1dWmlSfm4DValX5']
+
+    keyNumber = random.randint(0,2)
+
+    consumer_key = consumerKey[keyNumber]
+    consumer_secret = consumerSecret[keyNumber]
+    access_key = accessKey[keyNumber]
+    access_secret = accessSecret[keyNumber]
 
     # Create auth object to consume tweepy's API.
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -113,5 +125,9 @@ if __name__ == '__main__':
 
     # Custom filters!
     #stream.filter(track = ['love', 'hate'], languages = ['en'])
-    stream.filter(languages = ['en','fr'], locations=[-180, -90, 180, 90])
 
+    try:
+        stream.filter(languages = ['en','fr','ar', 'sp', 'sv', 'it', 'hi'], locations=[-180, -90, 180, 90])
+    except Exception as e:
+        print(e)
+        pass
