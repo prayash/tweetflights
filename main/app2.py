@@ -5,13 +5,9 @@ import random
 import subprocess
 from kafka import SimpleProducer, KafkaClient
 from geopy.geocoders import Nominatim
-from data_helpers import batch_iter, load_data, string_to_int
-import tensorflow as tf
-import os
-import time
-import numpy as np
-from random import randint
-from generic_helpers import *
+import sys
+from sentiment import sentiment_score
+
 class sentimentAI():
     def __init__(self):
         tf.flags.DEFINE_boolean('train', False,
@@ -53,7 +49,7 @@ class sentimentAI():
 
         FLAGS = tf.flags.FLAGS
 
-        x, y, self.vocabulary, vocabulary_inv = load_data()
+        x, y, self.vocabulary, vocabulary_inv = load_data(FLAGS.reduced_dataset)
         # Randomly shuffle data
         np.random.seed(123)
         shuffle_indices = np.random.permutation(np.arange(len(y)))
@@ -64,7 +60,12 @@ class sentimentAI():
         test_index = int(len(x) * text_percent)
         x_train, x_test = x_shuffled[:-test_index], x_shuffled[-test_index:]
         y_train, y_test = y_shuffled[:-test_index], y_shuffled[-test_index:]
-        
+        sequence_length = x_train.shape[1]
+	num_classes = y_train.shape[1]
+	vocab_size = len(self.vocabulary)
+	filter_sizes = map(int, FLAGS.filter_sizes.split(','))
+	validate_every = len(y_train) / (FLAGS.batch_size * FLAGS.valid_freq)
+	checkpoint_every = len(y_train) / (FLAGS.batch_size * FLAGS.checkpoint_freq)
         self.sess = tf.InteractiveSession()
         # Network
         # Placeholders
@@ -90,8 +91,8 @@ class sentimentAI():
             with tf.name_scope('conv-maxpool-%s' % filter_size):
                 # Convolution Layer
                 filter_shape = [filter_size, FLAGS.embedding_size, 1, FLAGS.num_filters]
-                W = weight_variable(filter_shape, name='W_conv')
-                b = bias_variable([FLAGS.num_filters], name='b_conv')
+                W = self.weight_variable(filter_shape, name='W_conv')
+                b = self.bias_variable([FLAGS.num_filters], name='b_conv')
                 conv = tf.nn.conv2d(embedded_chars_expanded,
                             W,
                             strides=[1, 1, 1, 1],
@@ -119,15 +120,22 @@ class sentimentAI():
 
         # Output layer
         with tf.name_scope('output'):
-            W_out = weight_variable([num_filters_total, num_classes], name='W_out')
-            b_out = bias_variable([num_classes], name='b_out')
+            W_out = self.weight_variable([num_filters_total, num_classes], name='W_out')
+            b_out = self.bias_variable([num_classes], name='b_out')
             network_out = tf.nn.softmax(tf.matmul(h_drop, W_out) + b_out)
         # Loss function
         cross_entropy = -tf.reduce_sum(data_out * tf.log(network_out))
+	train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+	# Testing operations
+	correct_prediction = tf.equal(tf.argmax(network_out, 1), tf.argmax(data_out, 1))
+	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+	valid_mean_accuracy = tf.reduce_mean(valid_accuracies)
+	valid_mean_loss = tf.reduce_mean(valid_losses)
         saver = tf.train.Saver()
-        saver.Restore(self.sess, '~/nn/output/run20170423/checkpoint.ckpt')
+	with tf.Session() as sess:
+        	saver.restore(self, 'checkpoint.ckpt')
 
-    def weight_variable(shape, name):
+    def weight_variable(self, shape, name):
         """
         Creates a new Tf weight variable with the given shape and name.
         Returns the new variable.
@@ -135,7 +143,7 @@ class sentimentAI():
         var = tf.truncated_normal(shape, stddev=0.1)
         return tf.Variable(var, name=name)
 
-    def bias_variable(shape, name):
+    def bias_variable(self, shape, name):
         """
         Creates a new Tf bias variable with the given shape and name.
         Returns the new variable.
@@ -181,7 +189,7 @@ class TStreamListener(tweepy.StreamListener):
     def __init__(self, api):
         self.geolocator = Nominatim()
         self.api = api
-        self.ai = sentimentAI()
+        #self.ai = sentimentAI()
         super(tweepy.StreamListener, self).__init__()
 
         # Instantiate a KafkaClient on local machine.
@@ -217,9 +225,12 @@ class TStreamListener(tweepy.StreamListener):
 
                             toLocationCoordinates = self.geolocator.geocode(toUserId_filter_JSON["profile_location"]['name'].encode('utf-8'))
                             fromLocationCoordinates = self.geolocator.geocode(twitterFilterJSON['place']['full_name'].encode('utf-8'))
-
-                            sentiment = self.ai.evaluate_sentence(twitterFilterJSON['text'].encode('utf-8'))
-
+			    sentimentscore = sentiment_score(utwitterFilterJSON['text'].encode('utf-8'))
+			    if sentimentscore > 0.5:
+			    	sentiment = 'Pos'
+			    else:
+				sentiment = 'Neg'
+                            #sentiment = self.ai.evaluate_sentence(twitterFilterJSON['text'].encode('utf-8'))
                             if toLocationCoordinates != None and fromLocationCoordinates != None:
                                 tweetJSON = "{\"text\": \"" + twitterFilterJSON['text'].encode('utf-8').strip('\\') + "\", \"language\": \"" + twitterFilterJSON['lang'].encode('utf-8') + "\", \"sentiment\": \"" + sentiment.encode('utf-8') + "\", \"fromLocation\": \"" + twitterFilterJSON['place']['full_name'].encode('utf-8') + "\", \"fromLocationLat\": \"" + str(fromLocationCoordinates.latitude) + "\", \"fromLocationLong\": \"" + str(fromLocationCoordinates.longitude) + "\", \"toLocation\": \"" + toUserId_filter_JSON["profile_location"]['name'].encode('utf-8') + "\", \"toLocationLat\": \"" + str(toLocationCoordinates.latitude) + "\", \"toLocationLong\": \"" + str(toLocationCoordinates.longitude) + "\" }".encode('utf-8')
                                 print tweetJSON
