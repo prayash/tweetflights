@@ -1,5 +1,6 @@
 'use strict';
 
+var precss = require('precss');
 var autoprefixer = require('autoprefixer');
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -111,7 +112,8 @@ module.exports = {
           /\.(js|jsx)$/,
           /\.css$/,
           /\.json$/,
-          /\.svg$/
+          /\.svg$/,
+          /\.(vert|frag)(\?.*)?$/,
         ],
         loader: 'url',
         query: {
@@ -169,6 +171,7 @@ module.exports = {
   // We use PostCSS for autoprefixing only.
   postcss: function() {
     return [
+      precss,
       autoprefixer({
         browsers: [
           '>1%',

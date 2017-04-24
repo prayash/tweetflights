@@ -1,12 +1,8 @@
 {
-  "name": "kafka-node",
+  "name": "server",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "chalk": "^1.1.3",
-    "express": "^4.15.2",
-    "kafka-node": "^1.6.0",
-    "optimist": "^0.6.1",
-    "socket.io": "^1.7.3"
+    "express": "^4.15.2"
   }
 }
