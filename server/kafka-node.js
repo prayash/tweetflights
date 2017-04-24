@@ -1,3 +1,5 @@
+'use strict';
+
 // ********************************************************************************
 // A basic node.js consumer for Kafka queue that uses web sockets to emit real time
 // data into the client via a TCP connection. Hurrah!
