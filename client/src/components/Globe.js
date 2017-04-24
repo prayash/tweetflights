@@ -130,7 +130,7 @@ class Globe extends React.Component {
     var geometry2 = new THREE.Geometry();
     geometry2.vertices = curve.getPoints(50);
 
-    var material2 = new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, opacity: 0.0, transparent: true });
+    var material2 = new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, linewidth: 10, opacity: 0.0, transparent: true });
 
     // Create the final Object3d to add to the scene
     var curveObject = new THREE.Line(geometry2, material2);

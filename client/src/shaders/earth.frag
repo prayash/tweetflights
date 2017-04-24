@@ -21,7 +21,7 @@ void main() {
   vec3 light_vec = normalize(v_LightPos - v_Position);
 
   // Compute lighting using dot product of vertex normal and light vector
-  float lightStrength = max(dot(v_Normal, light_vec), 0.1);
+  float lightStrength = max(dot(v_Normal, light_vec), 0.3);
 
   // Final output is the blended texture map multiplied by light strength
   gl_FragColor = diffuse * lightStrength;
