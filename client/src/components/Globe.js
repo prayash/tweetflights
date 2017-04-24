@@ -151,7 +151,7 @@ class Globe extends React.Component {
       ? new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, linewidth: 3, opacity: 0.0, transparent: true })
       : new MeshLineMaterial({
           color: new THREE.Color(sentiment == 'pos' ? BLUE : RED),
-          lineWidth: 5
+          lineWidth: 1
         });
 
     // Create the final Object3d to add to the scene
@@ -159,13 +159,16 @@ class Globe extends React.Component {
     scene.add(curveObject);
     this.animatePath(0, 1, 2000, curveObject);
 
-    this.renderTweetInfo(text, mid);
+    let isNeg = sentiment == 'pos'? false : true;
+    this.renderTweetInfo(text, mid, isNeg);
 
     let fPos = mid; fPos.y = mid.y - 2;
-    this.renderTweetInfo(from.loc, fPos);
+    let fromText = 'From: ' + from.loc;
+    this.renderTweetInfo(fromText, fPos, isNeg);
 
-    let tPos = mid; tPos = mid.y - 3;
-    this.renderTweetInfo(to.loc, tPos);
+    let tPos = fPos; tPos.y = fPos.y - 2;
+    let toText = 'To: ' + to.loc;
+    this.renderTweetInfo(toText, tPos, isNeg);
   }
 
   animatePath = (start, end, duration, obj) => {
@@ -182,14 +185,13 @@ class Globe extends React.Component {
       });
   }
 
-  renderTweetInfo = (text, pos) => {
+  renderTweetInfo = (text, pos, isNeg) => {
     font = new THREE.Font(JSON.parse(fontFile.substring(65, fontFile.length - 2)));
     var xMid, text;
     var textShape = new THREE.BufferGeometry();
-    var color = 0x006699;
+    var color = isNeg ? RED : BLUE;
     var matDark = new THREE.LineBasicMaterial({color: color, side: THREE.DoubleSide});
     var matLite = new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: 0.8, side: THREE.DoubleSide});
-    var message = "tweet!";
     var shapes = font.generateShapes(text, 1, 1);
     var geometry = new THREE.ShapeGeometry(shapes);
     geometry.computeBoundingBox();
@@ -301,9 +303,9 @@ class Globe extends React.Component {
     loader.load(cloudsTexture, (cloudsTexture) => {
       loader.load(earthTexture, (globeTexture) => {
         loader.load(earthBumps, (bumpTexture) => {
-          loader.load(maskTexture, (maskTex) => {
-            loader.load(nightTexture, (nightTex) => {
-              const assets = { globeTexture, cloudsTexture, bumpTexture, maskTex, nightTex };
+          loader.load(maskTexture, (maskTexture) => {
+            loader.load(nightTexture, (nightTexture) => {
+              const assets = { globeTexture, cloudsTexture, bumpTexture, maskTexture, nightTexture };
               this.createEarth(assets);
               this.animate();
             })
