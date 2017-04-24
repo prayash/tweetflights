@@ -4,6 +4,11 @@ import Header from './Header';
 import Globe from './Globe';
 
 class Application extends Component {
+
+  toggleDetails = () => {
+    
+  }
+
   render() {
     return (
       <div id='container'>
@@ -14,7 +19,7 @@ class Application extends Component {
           <ul className="tg-list">
             <li className="tg-list-item">
               <input className="tgl tgl-skewed" id="cb1" type="checkbox"/>
-              <label className="tgl-btn" data-tg-off="OFF" data-tg-on="ON" htmlFor="cb1"></label>
+              <label className="tgl-btn" data-tg-off="OFF" data-tg-on="ON" htmlFor="cb1" onClick={this.toggleDetails()}></label>
               <h4>Details</h4>
             </li>
 
