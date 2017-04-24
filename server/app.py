@@ -2,6 +2,7 @@ import json
 import tweepy
 import configparser
 import random
+import subprocess
 from kafka import SimpleProducer, KafkaClient
 from geopy.geocoders import Nominatim
 
@@ -53,10 +54,9 @@ class TStreamListener(tweepy.StreamListener):
 
                             toLocationCoordinates = self.geolocator.geocode(toUserId_filter_JSON["profile_location"]['name'].encode('utf-8'))
                             fromLocationCoordinates = self.geolocator.geocode(twitterFilterJSON['place']['full_name'].encode('utf-8'))
-                            sentiment = "positive"
-
+                            sentiment = subprocess.check_output('python', '~/nn/twitter-sentiment-cnn', '--load', 'run20170423-124859', '--custom_input', twitterFilterJSON['text'].encode('utf-8'))
+                            
                             if toLocationCoordinates != None and fromLocationCoordinates != None:
-
                                 tweetJSON = "{\"text\": \"" + twitterFilterJSON['text'].encode('utf-8') + "\", \"language\": \"" + twitterFilterJSON['lang'].encode('utf-8') + "\", \"sentiment\": \"" + sentiment.encode('utf-8') + "\", \"fromLocation\": \"" + twitterFilterJSON['place']['full_name'].encode('utf-8') + "\", \"fromLocationcoordinates\": \"" + str(fromLocationCoordinates.latitude) + "," + str(fromLocationCoordinates.longitude) + "\", \"toLocation\": \"" + toUserId_filter_JSON["profile_location"]['name'].encode('utf-8') + "\", \"toLocationcoordinates\": \"" + str(toLocationCoordinates.latitude) + "," + str(toLocationCoordinates.longitude) + "\" }".encode('utf-8')
                                 print tweetJSON
                                 self.producer.send_messages('twitterstream', tweetJSON)
