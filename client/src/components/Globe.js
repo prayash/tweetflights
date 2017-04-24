@@ -40,6 +40,7 @@ let startTime = new Date().getTime();
 const EARTH_RADIUS = 50;
 const BLUE = '#1DA1F2';
 const RED = '#F21646'
+let INTERVAL = 500;
 
 let testData = {
   "text": "Hey @MarcosFlores85 we will be over to see you play borneo fc on the 14th of may",
@@ -53,16 +54,6 @@ let testData = {
   },
   'sentiment': 'pos'
 };
-
-// let testData = [{
-//   "text": "@ChrisKirouac @RT_com B.S. American Airlines lost my luggage in Buffalo.", 
-//   "fromLocation": "Opportunity, WA",
-//   "toLocation": "Ontario, Canada"
-// }, {
-//   "text": "Hey @MarcosFlores85 we will be over to see you play borneo fc on the 14th of may",
-//   "fromLocation": "Newcastle, New South Wales",
-//   "toLocation": "Rosario, Argentina"
-// }];
 
 // ********************************************************************************
 
@@ -95,7 +86,7 @@ class Globe extends React.Component {
     socket.on('init', () => {
       setTimeout(() => {
         socket.emit('ack');
-      }, 2000);
+      }, INTERVAL);
     });
 
     socket.on('tweet', (t) => {
@@ -103,7 +94,7 @@ class Globe extends React.Component {
 
       setTimeout(() => {
         socket.emit('ack');
-      }, 2000);
+      }, INTERVAL);
     })
   }
 
@@ -140,7 +131,10 @@ class Globe extends React.Component {
     var geometry2 = new THREE.Geometry();
     geometry2.vertices = curve.getPoints(50);
 
-    var material2 = new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, linewidth: 10, opacity: 0.0, transparent: true });
+    // var material2 = new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, linewidth: 10, opacity: 0.0, transparent: true });
+    var material2 = navigator.userAgent.match(/Android/i) ? 
+      new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, linewidth: 3, opacity: 0.0, transparent: true })
+      : new MeshLineMaterial();
 
     // Create the final Object3d to add to the scene
     var curveObject = new THREE.Line(geometry2, material2);
@@ -203,10 +197,10 @@ class Globe extends React.Component {
     controls = new TBControls(camera, renderer.domElement);
     controls.rotateSpeed = 2.0;
     controls.zoomSpeed = 1;
-    controls.panSpeed = 1;
+    controls.noPan = true;
     controls.dampingFactor = 0.3;
-    controls.minDistance = 300;
-    controls.maxDistance = 500;
+    controls.minDistance = 150;
+    controls.maxDistance = 350;
   }
 
   loadAndCreate = () => {

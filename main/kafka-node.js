@@ -17,7 +17,7 @@ const Client = Kafka.Client;
 
 let topic = 'twitterstream';
 let kClient = new Client(KAFKA_PORT);
-let topics = [{ topic: 'twitterstream', partition: 0, offset: 0 }];
+let topics = [{ topic: 'twitterstream', partition: 0, offset: 20 }];
 let offset = new Offset(kClient);
 let consumer = new Consumer(kClient, topics, {
   fromOffset: false,
