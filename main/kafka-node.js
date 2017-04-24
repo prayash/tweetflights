@@ -8,21 +8,23 @@ const KAFKA_PORT = '127.0.0.1:2181';
 const SERVER_PORT = 1337;
 
 const chalk = require('chalk');
+const utf8 = require('utf8');
+const stripAnsi = require('strip-ansi');
 const Kafka = require('kafka-node');
 const Consumer = Kafka.Consumer;
 const Offset = Kafka.Offset;
 const Client = Kafka.Client;
 
-let topic = 'twitterstream';
-let kClient = new Client(KAFKA_PORT);
-let topics = [{ topic: 'twitterstream', partition: 0, offset: 0 }];
-let offset = new Offset(kClient);
-let consumer = new Consumer(kClient, topics, {
-  fromOffset: false,
-  autoCommit: false,
-  fetchMaxWaitMs: 1000,
-  fetchMaxBytes: 1024 * 1024
-});
+// let topic = 'twitterstream';
+// let kClient = new Client(KAFKA_PORT);
+// let topics = [{ topic: 'twitterstream', partition: 0, offset: 0 }];
+// let offset = new Offset(kClient);
+// let consumer = new Consumer(kClient, topics, {
+//   fromOffset: false,
+//   autoCommit: false,
+//   fetchMaxWaitMs: 1000,
+//   fetchMaxBytes: 1024 * 1024
+// });
 
 // ********************************************************************************
 // * Server + Socket emissions with client
@@ -35,56 +37,17 @@ server.listen(SERVER_PORT, () => {
   console.log(chalk.green('Node-Kafka stream online! \nListening on port: ' + SERVER_PORT));
 });
 
-let bunk = [
-  {
-    "text": "Hey @MarcosFlores85 we will be over to see you play borneo fc on the 14th of may",
-    "from": {
-      'lat': "-32.926696",
-      'lon': "151.778892"
-    },
-    "to": {
-      'lat': "-32.9468200", 
-      'lon': "-60.6393200"
-    },
-    'sentiment': 'neg'
-  },
-  {
-    "text": "Hey @MarcosFlores85 we will be over to see you play borneo fc on the 14th of may",
-    'from': {
-      'lat': '40.014984',
-      'lon': '-105.270546'
-    },
-    'to': {
-      'lat': '27.700769',
-      'lon': '85.300140'
-    },
-    'sentiment': 'pos'
-  },
-  {
-    "text": "Hey @MarcosFlores85 we will be over to see you play borneo fc on the 14th of may",
-    'from': {
-      'lat': '51.2538',
-      'lon': '-85.3232'
-    },
-    'to': {
-      'lat': '47.6574',
-      'lon': '-117.2399'
-    },
-    'sentiment': 'neg'
-  },
-  {
-    "text": "Hey @MarcosFlores85 we will be over to see you play borneo fc on the 14th of may",
-    'from': {
-      'lat': '-24.7821',
-      'lon': '-65.4232'
-    },
-    'to': {
-      'lat': '9.1450',
-      'lon': '40.4897'
-    },
-    'sentiment': 'pos'
-  }
-];
+let bunk = { topic: 'twitterstream',
+  value: '{"text": "@moniboyce Oh Btw,I did the Syndicate Ra🙏dio Show on KLOS FM Station last night. Lmao\nI asked if u could hear it fro… https://t.co/slBjc1PLON", "language": "en", "sentiment": "positive", "fromLocation": "West Hollywood, CA", "fromLocationcoordinates": "34.0900091,-118.3617442", "toLocation": "Cape Town, South Africa", "toLocationcoordinates": "-33.9289919,18.417396" }',
+  offset: 281,
+  partition: 0,
+  highWaterOffset: 282,
+  key: -1
+};
+
+let n = stripAnsi(bunk.value);
+let data = JSON.parse(n);
+console.log(data);
 
 let i = 0;
 
@@ -95,25 +58,25 @@ io.on('connection', (socket) => {
     console.log('Client disconnected!');
   });
 
-  socket.emit('tweet', bunk[i++]);
+  socket.emit('tweet', data);
+
+  // consumer.on('message', (message) => {
+  //   console.log(chalk.blue('.'));
+  //   // socket.emit('tweet', message);
+  //   console.log(message);
+  // });
+
+  // consumer.on('error', (err) => {
+  //   console.log('error', err);
+  // });
 
   socket.on('ack', () => {
-    socket.emit('tweet', bunk[i++]);
+    socket.emit('tweet', data);
   });
 });
 
 // ********************************************************************************
 // Kafka emissions
-
-consumer.on('message', (message) => {
-  console.log(chalk.blue('.'));
-  // socket.emit('tweet', message);
-  console.log(message);
-});
-
-consumer.on('error', (err) => {
-  console.log('error', err);
-});
 
 // If consumer get `offsetOutOfRange` event, fetch data from the smallest(oldest) offset
 // consumer.on('offsetOutOfRange', (topic) => {

@@ -88,7 +88,7 @@ class Globe extends React.Component {
 
   setupSocket = () => {
     console.log("Connecting to the node-kafka server...");
-    socket = io.connect('ws://ec2-13-58-74-255.us-east-2.compute.amazonaws.com:1337');
+    socket = io.connect('ws://127.0.0.1:1337');
 
     socket.on('tweet', (t) => {
       this.drawPathOfTweet(t);
