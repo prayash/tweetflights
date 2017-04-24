@@ -7,7 +7,8 @@ class Header extends Component {
     return (
       <div id='header'>
         <img className='twitter-logo' src={twitterLogo} alt='twitter logo'/>
-        <h1 className='title'>A &#39;bit&#39; of Big Data</h1>
+        {/*<h1 className='title'>A &#39;bit&#39; of Big Data</h1>*/}
+        <h1 className='title'>TweetFlights</h1>
       </div>
     );
   }
