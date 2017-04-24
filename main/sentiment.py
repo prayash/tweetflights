@@ -43,7 +43,7 @@ def pad_sents(sents, padding_token_index):
     return padded_sents
 
 
-WORD2INDEX = load(open("~/A-Bit-of-Big-Data/main/data/twitter.pkl"))[3]
+WORD2INDEX = load(open("data/twitter.pkl"))[3]
 PADDING_INDEX = WORD2INDEX[u"<PADDING>"]
 
 from param_util import load_dcnn_model_params
