@@ -100,20 +100,20 @@ io.on('connection', (socket) => {
   socket.on('ack', () => {
     socket.emit('tweet', bunk[i++]);
   });
-
-  consumer.on('message', (message) => {
-    console.log(chalk.blue('.'));
-    // socket.emit('tweet', message);
-    console.log(message);
-  });
-
-  consumer.on('error', (err) => {
-    console.log('error', err);
-  });
 });
 
 // ********************************************************************************
 // Kafka emissions
+
+consumer.on('message', (message) => {
+  console.log(chalk.blue('.'));
+  // socket.emit('tweet', message);
+  console.log(message);
+});
+
+consumer.on('error', (err) => {
+  console.log('error', err);
+});
 
 // If consumer get `offsetOutOfRange` event, fetch data from the smallest(oldest) offset
 // consumer.on('offsetOutOfRange', (topic) => {
