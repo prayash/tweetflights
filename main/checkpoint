@@ -1,2 +1,0 @@
-model_checkpoint_path: "/home/ubuntu/twitter-sentiment-cnn/output/run20170423-223928/checkpoint.ckpt"
-all_model_checkpoint_paths: "/home/ubuntu/twitter-sentiment-cnn/output/run20170423-223928/checkpoint.ckpt"
