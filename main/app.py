@@ -5,7 +5,7 @@ import random
 import subprocess
 from kafka import SimpleProducer, KafkaClient
 from geopy.geocoders import Nominatim
-
+from sentiment import sentiment_score
 
 class TStreamListener(tweepy.StreamListener):
     """ A class to read the twitter stream via tweepy and push it to a Kafka producer.
@@ -54,7 +54,15 @@ class TStreamListener(tweepy.StreamListener):
 
                             toLocationCoordinates = self.geolocator.geocode(toUserId_filter_JSON["profile_location"]['name'].encode('utf-8'))
                             fromLocationCoordinates = self.geolocator.geocode(twitterFilterJSON['place']['full_name'].encode('utf-8'))
-                            sentiment = "Pos"#subprocess.check_output('python', '~/nn/twitter-sentiment-cnn', '--load', 'run20170423-124859', '--custom_input', twitterFilterJSON['text'].encode('utf-8'))
+			    if twitterFilterJSON["lang"].startswith("en"):
+			    	sentscore = sentiment_score(twitterFilterJSON['text'].encode('utf-8'))
+			    	if sentscore > 0.5:
+				    sentiment = 'Pos'
+			    	else:
+				    sentiment = 'Neg'
+			    else:
+				sentiment = 'Pos'
+                            #sentiment = "Pos"#subprocess.check_output('python', '~/nn/twitter-sentiment-cnn', '--load', 'run20170423-124859', '--custom_input', twitterFilterJSON['text'].encode('utf-8'))
                             
                             if toLocationCoordinates != None and fromLocationCoordinates != None:
                                 tweetJSON = "{\"text\": \"" + twitterFilterJSON['text'].encode('utf-8').strip('\\') + "\", \"language\": \"" + twitterFilterJSON['lang'].encode('utf-8') + "\", \"sentiment\": \"" + sentiment.encode('utf-8') + "\", \"fromLocation\": \"" + twitterFilterJSON['place']['full_name'].encode('utf-8') + "\", \"fromLocationLat\": \"" + str(fromLocationCoordinates.latitude) + "\", \"fromLocationLong\": \"" + str(fromLocationCoordinates.longitude) + "\", \"toLocation\": \"" + toUserId_filter_JSON["profile_location"]['name'].encode('utf-8') + "\", \"toLocationLat\": \"" + str(toLocationCoordinates.latitude) + "\", \"toLocationLong\": \"" + str(toLocationCoordinates.longitude) + "\" }".encode('utf-8')
