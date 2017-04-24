@@ -11,16 +11,16 @@ const Consumer = Kafka.Consumer;
 const Offset = Kafka.Offset;
 const Client = Kafka.Client;
 
-// let topic = 'twitterstream';
-// let kClient = new Client(KAFKA_PORT);
-// let topics = [{ topic: 'twitterstream', partition: 0, offset: 0 }];
-// let offset = new Offset(kClient);
-// let consumer = new Consumer(kClient, topics, {
-//   fromOffset: true,
-//   autoCommit: false,
-//   fetchMaxWaitMs: 1000,
-//   fetchMaxBytes: 1024 * 1024
-// });
+let topic = 'twitterstream';
+let kClient = new Client(KAFKA_PORT);
+let topics = [{ topic: 'twitterstream', partition: 0, offset: 0 }];
+let offset = new Offset(kClient);
+let consumer = new Consumer(kClient, topics, {
+  fromOffset: true,
+  autoCommit: false,
+  fetchMaxWaitMs: 1000,
+  fetchMaxBytes: 1024 * 1024
+});
 
 // ********************************************************************************
 // * Server + Socket emissions with client
@@ -90,25 +90,24 @@ io.on('connection', (socket) => {
   console.log(chalk.green("Client connected!"));
 
   socket.on('disconnect', () => {
-    console.log('Client disconnted!');
+    console.log('Client disconnected!');
   });
 
   socket.emit('tweet', bunk[i++]);
 
   socket.on('ack', () => {
-    console.log('Ayyy lmao.');
     socket.emit('tweet', bunk[i++]);
   });
 
-  // consumer.on('message', (message) => {
-  //   console.log(chalk.blue('.'));
-  //   socket.emit('tweet', message);
-  //   console.log(message);
-  // });
+  consumer.on('message', (message) => {
+    console.log(chalk.blue('.'));
+    // socket.emit('tweet', message);
+    console.log(message);
+  });
 
-  // consumer.on('error', (err) => {
-  //   console.log('error', err);
-  // });
+  consumer.on('error', (err) => {
+    console.log('error', err);
+  });
 });
 
 // ********************************************************************************
