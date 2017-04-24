@@ -5,7 +5,7 @@ import random
 import subprocess
 from kafka import SimpleProducer, KafkaClient
 from geopy.geocoders import Nominatim
-
+from sentiment import sentiment_score
 
 class TStreamListener(tweepy.StreamListener):
     """ A class to read the twitter stream via tweepy and push it to a Kafka producer.
@@ -54,7 +54,15 @@ class TStreamListener(tweepy.StreamListener):
 
                             toLocationCoordinates = self.geolocator.geocode(toUserId_filter_JSON["profile_location"]['name'].encode('utf-8'))
                             fromLocationCoordinates = self.geolocator.geocode(twitterFilterJSON['place']['full_name'].encode('utf-8'))
-                            sentiment = "Pos"#subprocess.check_output('python', '~/nn/twitter-sentiment-cnn', '--load', 'run20170423-124859', '--custom_input', twitterFilterJSON['text'].encode('utf-8'))
+			    if twitterFilterJSON["lang"].startswith("en"):
+			    	sentscore = sentiment_score(twitterFilterJSON['text'].encode('utf-8'))
+			    	if sentscore > 0.5:
+				    sentiment = 'Pos'
+			    	else:
+				    sentiment = 'Neg'
+			    else:
+				sentiment = 'Pos'
+                            #sentiment = "Pos"#subprocess.check_output('python', '~/nn/twitter-sentiment-cnn', '--load', 'run20170423-124859', '--custom_input', twitterFilterJSON['text'].encode('utf-8'))
                             
                             if toLocationCoordinates != None and fromLocationCoordinates != None:
                                 tweetJSON = "{\"text\": \"" + twitterFilterJSON['text'].encode('utf-8').strip('\\') + "\", \"language\": \"" + twitterFilterJSON['lang'].encode('utf-8') + "\", \"sentiment\": \"" + sentiment.encode('utf-8') + "\", \"fromLocation\": \"" + twitterFilterJSON['place']['full_name'].encode('utf-8') + "\", \"fromLocationLat\": \"" + str(fromLocationCoordinates.latitude) + "\", \"fromLocationLong\": \"" + str(fromLocationCoordinates.longitude) + "\", \"toLocation\": \"" + toUserId_filter_JSON["profile_location"]['name'].encode('utf-8') + "\", \"toLocationLat\": \"" + str(toLocationCoordinates.latitude) + "\", \"toLocationLong\": \"" + str(toLocationCoordinates.longitude) + "\" }".encode('utf-8')
@@ -104,12 +112,12 @@ if __name__ == '__main__':
     # access_secret = config['DEFAULT']['accessTokenSecret']
 
     # Twitter API key arrays
-    consumerKey = ['z7mSIufiB7Lom9dJyvQ3blEDR', '3nU7p7BSVMGJi5MQFM6o1bYQy', 'VMV0HV4fmFvqHKnIQ9lVEkSRC']
-    consumerSecret = ['V3Xq4WxpJAo6LWjRLipThKC10wMZHDHfhZQNzDYl6Kg0CIBlgA',  'RDaA1vcB5DaBwCfVJ3wBuLW94LzZ3I1lWjQYf2bGzxEvOX8kii', 'WWCmy3VdQkZlhR5OF9FSSWWxevxyUmBidFsVJgJ3pnqZTBgTyk']
-    accessKey = ['717173546-jgCRHCgVeW9ShqRxRPUko1eEX0dW8v0VM0UrNiLS', '820303078486327296-baaGtIVl3rHf6kp0AKKP95XEQBHptmw', '2466981529-Q3Ij2PBoVsNlenDNfHEQgYqC6pRl9ibieyvqn1u']
-    accessSecret = ['kM2ENz91HTDVuC2NajwE1cD7rZVa52hPSgAQP7Y9lEfLZ', 'qBqzk9G75uxwS068ZRrB9uIil5kVHTZefnvffWB6ASoVT', 'S2G1LOZMNVcT92Vs7rQXRJw5aZcF3j1dWmlSfm4DValX5']
+    consumerKey = ['z7mSIufiB7Lom9dJyvQ3blEDR', '3nU7p7BSVMGJi5MQFM6o1bYQy', 'VMV0HV4fmFvqHKnIQ9lVEkSRC', 'eFdG5OTmYaG6dajkCyIkzVgDN', 'dMbHUg2mwSfdWtLmr1c3fAlLk', 'XxN8LsbSVl7X3fLVfVSX4OwRK']
+    consumerSecret = ['V3Xq4WxpJAo6LWjRLipThKC10wMZHDHfhZQNzDYl6Kg0CIBlgA',  'RDaA1vcB5DaBwCfVJ3wBuLW94LzZ3I1lWjQYf2bGzxEvOX8kii', 'WWCmy3VdQkZlhR5OF9FSSWWxevxyUmBidFsVJgJ3pnqZTBgTyk', 'GKD3VJJSuIhrxGwlUV6bZkzQAMgbtVLIMisWklpcmN1KvdSgQN', '2XzEortaoQVeqZLRdV4pMhy5urWbVY8mZOfmBohlJttcAoqF3I', 'fgI6A5Ts63AveKaZbiRrZ1dFqEGi7vk3YbFyqZGVGNxuz49LI2']
+    accessKey = ['717173546-jgCRHCgVeW9ShqRxRPUko1eEX0dW8v0VM0UrNiLS', '820303078486327296-baaGtIVl3rHf6kp0AKKP95XEQBHptmw', '2466981529-Q3Ij2PBoVsNlenDNfHEQgYqC6pRl9ibieyvqn1u', '2466981529-oFHUwqGSreeHafFYjs2jgZdqHo9VKyp5FqLlfTf', '2466981529-akosgWxjGbZrh3WoSY2JCZXG41VNcZSxhmRM8P6', '2466981529-47NKtvo3pkwX0M2c0NCz16e4HKrrfsMnYOygED8']
+    accessSecret = ['kM2ENz91HTDVuC2NajwE1cD7rZVa52hPSgAQP7Y9lEfLZ', 'qBqzk9G75uxwS068ZRrB9uIil5kVHTZefnvffWB6ASoVT', 'S2G1LOZMNVcT92Vs7rQXRJw5aZcF3j1dWmlSfm4DValX5', 'AlO5qh4HglK8QgYQ0MJZqjooiJ9vOnzqo7JyQFbV7MUOP', 'I5dPFLT44ePKuoMcRNXYdVi5m6PxB8O6ITKjYvcrtlDnj', 'lXpiVdLAepRnqLdvj2IlgA0stJP7sLyEPe23Zr64xhIol']
 
-    keyNumber = random.randint(0,2)
+    keyNumber = random.randint(0,5)
 
     consumer_key = consumerKey[keyNumber]
     consumer_secret = consumerSecret[keyNumber]
