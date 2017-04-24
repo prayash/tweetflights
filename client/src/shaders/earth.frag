@@ -14,7 +14,7 @@ void main() {
   vec4 clouds = texture2D(tClouds, vec2(vUv.x + fTime, vUv.y));
 
   // Blend the two textures
-  vec4 diffuse = earth + clouds;
+  vec4 diffuse = earth;
 
   // Manually add a light at the corresponding position vector
   vec3 v_LightPos = vec3(-200.0, 200.0, -50.0);

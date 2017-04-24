@@ -88,20 +88,30 @@ class Globe extends React.Component {
 
   setupSocket = () => {
     console.log("Connecting to the node-kafka server...");
-    socket = io.connect('ws://127.0.0.1:1337');
+    // socket = io.connect('ws://127.0.0.1:1337');
+    socket = io.connect('ws://ec2-13-58-74-255.us-east-2.compute.amazonaws.com:1337');
+
+
+    socket.on('init', () => {
+      setTimeout(() => {
+        socket.emit('ack');
+      }, 2000);
+    });
 
     socket.on('tweet', (t) => {
       this.drawPathOfTweet(t);
 
       setTimeout(() => {
         socket.emit('ack');
-    }, 2000);
-    });
+      }, 2000);
+    })
   }
 
   drawPathOfTweet = (tweet) => {
     console.log(tweet);
-    const { from, to, sentiment } = tweet;
+    const from = { lat: tweet.fromLocationLat, lon: tweet.fromLocationLong };
+    const to = { lat: tweet.toLocationLat, lon: tweet.toLocationLong };
+    const sentiment = tweet.sentiment.toLowerCase();
 
     let vF = toWorld(from.lat, from.lon, EARTH_RADIUS);
     let vT = toWorld(to.lat, to.lon, EARTH_RADIUS);
