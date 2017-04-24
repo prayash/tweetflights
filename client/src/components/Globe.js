@@ -18,6 +18,9 @@ import earth from 'raw!../shaders/earth.frag';
 import earthTexture from './../../assets/textures/earth_texture_2048.jpg';
 import cloudsTexture from './../../assets/textures/clouds_texture_2048.jpg';
 import earthBumps from './../../assets/textures/earth_bumps_2048.jpg';
+import maskTexture from './../../assets/textures/client_assets_textures_earth_ocean_mask_4k.png';
+import nightTexture from './../../assets/textures/client_assets_textures_night_6l.jpg';
+import fontFile from 'raw!./../../assets/helvetiker_regular.typeface.js';
 
 // ********************************************************************************
 
@@ -35,6 +38,17 @@ let socket,
 let globe;
 let boid, birds;
 
+let text = "aems",
+    size = 2,
+    curveSegments = 10,
+    bevelThickness = 1,
+    bevelSize = 0.3,
+    bevelSegments = 3,
+    bevelEnabled = false,
+    font = undefined
+
+let allTweets;
+
 let startTime = new Date().getTime();
 
 const EARTH_RADIUS = 50;
@@ -42,17 +56,16 @@ const BLUE = '#1DA1F2';
 const RED = '#F21646'
 let INTERVAL = 500;
 
-let testData = {
-  "text": "Hey @MarcosFlores85 we will be over to see you play borneo fc on the 14th of may",
-  'from': {
-    'lat': '40.014984',
-    'lon': '-105.270546'
-  },
-  'to': {
-    'lat': '27.700769',
-    'lon': '85.300140'
-  },
-  'sentiment': 'pos'
+let testData = { 
+  text: '@TomandSteveHost you got to hear this. https://t.co/HnHtHxYkyY',
+  language: 'en',
+  sentiment: 'Pos',
+  fromLocation: 'Coeur d\'Alene, ID',
+  fromLocationLat: '47.6776832',
+  fromLocationLong: '-116.7804663',
+  toLocation: 'Coeur d\'Alene, ID',
+  toLocationLat: '47.6776832',
+  toLocationLong: '-116.7804663'
 };
 
 // ********************************************************************************
@@ -63,6 +76,8 @@ class Globe extends React.Component {
     this.state = {
       time: 0.0
     };
+
+    allTweets =  new THREE.Group();
   }
 
   componentDidMount = () => {
@@ -100,8 +115,9 @@ class Globe extends React.Component {
 
   drawPathOfTweet = (tweet) => {
     console.log(tweet);
-    const from = { lat: tweet.fromLocationLat, lon: tweet.fromLocationLong };
-    const to = { lat: tweet.toLocationLat, lon: tweet.toLocationLong };
+    const text = tweet.text;
+    const from = { lat: tweet.fromLocationLat, lon: tweet.fromLocationLong, loc: tweet.fromLocation };
+    const to = { lat: tweet.toLocationLat, lon: tweet.toLocationLong, loc: tweet.toLocation };
     const sentiment = tweet.sentiment.toLowerCase();
 
     let vF = toWorld(from.lat, from.lon, EARTH_RADIUS);
@@ -131,15 +147,25 @@ class Globe extends React.Component {
     var geometry2 = new THREE.Geometry();
     geometry2.vertices = curve.getPoints(50);
 
-    // var material2 = new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, linewidth: 10, opacity: 0.0, transparent: true });
-    var material2 = navigator.userAgent.match(/Android/i) ? 
-      new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, linewidth: 3, opacity: 0.0, transparent: true })
-      : new MeshLineMaterial();
+    var material2 = navigator.userAgent.match(/Android/i)
+      ? new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, linewidth: 3, opacity: 0.0, transparent: true })
+      : new MeshLineMaterial({
+          color: new THREE.Color(sentiment == 'pos' ? BLUE : RED),
+          lineWidth: 5
+        });
 
     // Create the final Object3d to add to the scene
     var curveObject = new THREE.Line(geometry2, material2);
     scene.add(curveObject);
     this.animatePath(0, 1, 2000, curveObject);
+
+    this.renderTweetInfo(text, mid);
+
+    let fPos = mid; fPos.y = mid.y - 2;
+    this.renderTweetInfo(from.loc, fPos);
+
+    let tPos = mid; tPos = mid.y - 3;
+    this.renderTweetInfo(to.loc, tPos);
   }
 
   animatePath = (start, end, duration, obj) => {
@@ -155,6 +181,72 @@ class Globe extends React.Component {
         obj.material.opacity = o.opacity;
       });
   }
+
+  renderTweetInfo = (text, pos) => {
+    font = new THREE.Font(JSON.parse(fontFile.substring(65, fontFile.length - 2)));
+    var xMid, text;
+    var textShape = new THREE.BufferGeometry();
+    var color = 0x006699;
+    var matDark = new THREE.LineBasicMaterial({color: color, side: THREE.DoubleSide});
+    var matLite = new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: 0.8, side: THREE.DoubleSide});
+    var message = "tweet!";
+    var shapes = font.generateShapes(text, 1, 1);
+    var geometry = new THREE.ShapeGeometry(shapes);
+    geometry.computeBoundingBox();
+    xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+    geometry.translate(xMid, 0, 0);
+    // make shape ( N.B. edge view not visible )
+    textShape.fromGeometry(geometry);
+    text = new THREE.Mesh(textShape, matLite);
+    text.position.set(pos.x, pos.y, pos.z)
+    allTweets.add(text);
+    scene.add(text);
+    allTweets.lookAt(camera.position);
+    // make line shape ( N.B. edge view remains visible )
+    var holeShapes = [];
+    for (var i = 0; i < shapes.length; i++) {
+      var shape = shapes[i];
+      if (shape.holes && shape.holes.length > 0) {
+        for (var j = 0; j < shape.holes.length; j++) {
+          var hole = shape.holes[j];
+          holeShapes.push(hole);
+        }
+      }
+    }
+
+    shapes.push.apply(shapes, holeShapes);
+  }
+
+  // loadFont = () => {
+  //   // var loader = new THREE.FontLoader();
+  //   font = new THREE.Font(JSON.parse(fontFile.substring(65, fontFile.length - 2)));
+  //   this.createText();
+  //   // loader.load(fontFile, function (res) {
+  //     // font = res;
+      
+  //   // });
+  // }
+
+  // createText = () => {
+  //   let textGeo = new THREE.TextGeometry( 'tweet', {
+  //     font: font,
+  //     size: size,
+  //     height: 10,
+  //     curveSegments:curveSegments,
+  //     weight: "light",
+  //     bevelThickness:bevelThickness,
+  //     bevelSize:bevelSize,
+  //     bevelSegments:bevelSegments,
+  //     bevelEnabled:bevelEnabled
+  //   });
+  //   textGeo.computeBoundingBox();
+  //   textGeo.computeVertexNormals();
+  //   var cubeMat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF, wireframe: true });
+  //   var text = new THREE.Mesh(textGeo, cubeMat)
+  //   text.position.x = -textGeo.boundingBox.max.x/2;
+  //   text.castShadow = true;
+  //   scene.add(text)
+  // }
 
   renderMeshLine = () => {
     var geometry = new THREE.Geometry();
@@ -200,7 +292,7 @@ class Globe extends React.Component {
     controls.noPan = true;
     controls.dampingFactor = 0.3;
     controls.minDistance = 150;
-    controls.maxDistance = 350;
+    controls.maxDistance = 450;
   }
 
   loadAndCreate = () => {
@@ -209,16 +301,20 @@ class Globe extends React.Component {
     loader.load(cloudsTexture, (cloudsTexture) => {
       loader.load(earthTexture, (globeTexture) => {
         loader.load(earthBumps, (bumpTexture) => {
-          const assets = { globeTexture, cloudsTexture, bumpTexture };
-          this.createEarth(assets);
-          this.animate();
+          loader.load(maskTexture, (maskTex) => {
+            loader.load(nightTexture, (nightTex) => {
+              const assets = { globeTexture, cloudsTexture, bumpTexture, maskTex, nightTex };
+              this.createEarth(assets);
+              this.animate();
+            })
+          });
         });
       });
     });
   }
 
   createEarth = (params) => {
-    const { globeTexture, cloudsTexture, bumpTexture } = params;
+    const { globeTexture, cloudsTexture, bumpTexture, nightTexture, maskTexture } = params;
 
     // This defines how the texture is wrapped horizontally and corresponds to U in UV mapping
     globeTexture.wrapS = globeTexture.wrapT = THREE.RepeatWrapping;
@@ -230,6 +326,8 @@ class Globe extends React.Component {
       uniforms: {
         tEarth:  { value: globeTexture },
         tClouds: { value: cloudsTexture },
+        tNight: { value: nightTexture },
+        tMask: { value: maskTexture },
         bumpMap: { value: bumpTexture },
         bumpScale: { value: 2.0 },
         fTime:   { value: 0.0 }
@@ -243,11 +341,11 @@ class Globe extends React.Component {
   }
 
   setupLights = () => {
-    // scene.add(new THREE.AmbientLight(0xFFFFFF));
+    scene.add(new THREE.AmbientLight(0xFFFFFF));
 
-    // let light = new THREE.PointLight(0xFFFFFF, 1, 10000);
-    // light.position.set(80, 80, 400);
-    // scene.add(light);
+    let light = new THREE.PointLight(0xFFFFFF, 1, 10000);
+    light.position.set(80, 80, 400);
+    scene.add(light);
   }
 
   rotateCamera = () => {

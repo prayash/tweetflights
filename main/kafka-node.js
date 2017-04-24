@@ -45,7 +45,17 @@ let bunk = { topic: 'twitterstream',
   key: -1
 };
 
-let data;
+let data = { 
+  text: '@TomandSteveHost you got to hear this. https://t.co/HnHtHxYkyY',
+  language: 'en',
+  sentiment: 'Pos',
+  fromLocation: 'Denver, CO',
+  fromLocationLat: '39.7392',
+  fromLocationLong: '-104.9903',
+  toLocation: 'Coeur d\'Alene, ID',
+  toLocationLat: '47.6776832',
+  toLocationLong: '-116.7804663'
+};
 
 io.on('connection', (socket) => {
   console.log(chalk.green("Client connected!"));
@@ -74,7 +84,9 @@ io.on('connection', (socket) => {
   });
 
   socket.on('ack', () => {
-    socket.emit('tweet', data);
+    if (data.fromLocation !== data.toLocation) {
+      socket.emit('tweet', data);
+    }
   });
 });
 
