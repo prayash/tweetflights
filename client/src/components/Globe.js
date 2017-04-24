@@ -20,7 +20,7 @@ import cloudsTexture from './../../assets/textures/clouds_texture_2048.jpg';
 import earthBumps from './../../assets/textures/earth_bumps_2048.jpg';
 import maskTexture from './../../assets/textures/client_assets_textures_earth_ocean_mask_4k.png';
 import nightTexture from './../../assets/textures/client_assets_textures_night_6l.jpg';
-import fontFile from 'raw!./../../assets/helvetiker_regular.typeface.js';
+import fontFile from 'raw!./../../assets/typeface.js';
 
 // ********************************************************************************
 
@@ -114,7 +114,7 @@ class Globe extends React.Component {
   }
 
   drawPathOfTweet = (tweet) => {
-    console.log(tweet);
+    // console.log(tweet);
     const text = tweet.text;
     const from = { lat: tweet.fromLocationLat, lon: tweet.fromLocationLong, loc: tweet.fromLocation };
     const to = { lat: tweet.toLocationLat, lon: tweet.toLocationLong, loc: tweet.toLocation };
@@ -173,7 +173,6 @@ class Globe extends React.Component {
 
   animatePath = (start, end, duration, obj) => {
     // console.log("Zooming from:", start, "to", end);
-    console.log(obj.material.opacity);
     let o = { opacity: start };
     let oTarget = { opacity: end };
     let tween = new TWEEN.Tween(o)
