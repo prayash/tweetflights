@@ -218,37 +218,6 @@ class Globe extends React.Component {
     shapes.push.apply(shapes, holeShapes);
   }
 
-  // loadFont = () => {
-  //   // var loader = new THREE.FontLoader();
-  //   font = new THREE.Font(JSON.parse(fontFile.substring(65, fontFile.length - 2)));
-  //   this.createText();
-  //   // loader.load(fontFile, function (res) {
-  //     // font = res;
-      
-  //   // });
-  // }
-
-  // createText = () => {
-  //   let textGeo = new THREE.TextGeometry( 'tweet', {
-  //     font: font,
-  //     size: size,
-  //     height: 10,
-  //     curveSegments:curveSegments,
-  //     weight: "light",
-  //     bevelThickness:bevelThickness,
-  //     bevelSize:bevelSize,
-  //     bevelSegments:bevelSegments,
-  //     bevelEnabled:bevelEnabled
-  //   });
-  //   textGeo.computeBoundingBox();
-  //   textGeo.computeVertexNormals();
-  //   var cubeMat = new THREE.MeshLambertMaterial({ color: 0xFFFFFF, wireframe: true });
-  //   var text = new THREE.Mesh(textGeo, cubeMat)
-  //   text.position.x = -textGeo.boundingBox.max.x/2;
-  //   text.castShadow = true;
-  //   scene.add(text)
-  // }
-
   renderMeshLine = () => {
     var geometry = new THREE.Geometry();
     for (var j = 0; j < Math.PI * 2; j += 2 * Math.PI / 100) {
