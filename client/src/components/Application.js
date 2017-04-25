@@ -1,25 +1,33 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 
-import Header from './Header';
-import Globe from './Globe';
+import Header from './Header'
+import Globe from './Globe'
 
 class Application extends Component {
 
+  constructor(props) {
+    super(props);
+    this.state = { details: true };
+  }
+
   toggleDetails = () => {
-    
+    this.setState({
+      details: !this.state.details
+    })
   }
 
   render() {
+
     return (
       <div id='container'>
         <Header />
-        <Globe />
+        <Globe details={this.state.details} />
         <div id='controls'>
           <h3>Controls</h3>
           <ul className="tg-list">
             <li className="tg-list-item">
-              <input className="tgl tgl-skewed" id="cb1" type="checkbox"/>
-              <label className="tgl-btn" data-tg-off="OFF" data-tg-on="ON" htmlFor="cb1" onClick={this.toggleDetails()}></label>
+              <input className="tgl tgl-skewed" id="cb1" type="checkbox" checked={this.state.details} onChange={this.toggleDetails} />
+              <label className="tgl-btn" data-tg-off="OFF" data-tg-on="ON" htmlFor="cb1"></label>
               <h4>Details</h4>
             </li>
 
@@ -31,8 +39,8 @@ class Application extends Component {
           </ul>
         </div>
       </div>
-    );
+    )
   }
 }
 
-export default Application;
+export default Application

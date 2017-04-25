@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
-import '../css/header.css';
-import twitterLogo from '../../assets/twitter_logo.png';
+import React, { Component } from 'react'
+import '../css/header.css'
+import twitterLogo from '../../assets/twitter_logo.png'
 
 class Header extends Component {
   render() {
@@ -14,4 +14,4 @@ class Header extends Component {
   }
 }
 
-export default Header;
+export default Header
