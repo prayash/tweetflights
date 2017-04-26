@@ -38,7 +38,8 @@ let socket,
 let globe
 let boid, birds
 
-let text = "aems",
+let allTweets,
+    text = "aems",
     size = 2,
     curveSegments = 10,
     bevelThickness = 1,
@@ -47,14 +48,10 @@ let text = "aems",
     bevelEnabled = false,
     font = undefined
 
-let allTweets
-
-let startTime = new Date().getTime()
-
 const EARTH_RADIUS = 50
 const BLUE = '#1DA1F2'
 const RED = '#F21646'
-let INTERVAL = 500
+const SOCKET_INTERVAL = 500
 
 let testData = { 
   text: '@TomandSteveHost you got to hear this. https://t.co/HnHtHxYkyY',
@@ -93,15 +90,15 @@ class Globe extends React.Component {
   }
 
   setupSocket = () => {
-    console.log("Connecting to the node-kafka server...")
     // socket = io.connect('ws://127.0.0.1:1337')
     socket = io.connect('ws://ec2-13-58-74-255.us-east-2.compute.amazonaws.com:1337')
 
 
     socket.on('init', () => {
       setTimeout(() => {
+        console.log('Established connection to Websocket server.')
         socket.emit('ack')
-      }, INTERVAL)
+      }, SOCKET_INTERVAL)
     })
 
     socket.on('tweet', (t) => {
@@ -109,7 +106,7 @@ class Globe extends React.Component {
 
       setTimeout(() => {
         socket.emit('ack')
-      }, INTERVAL)
+      }, SOCKET_INTERVAL)
     })
   }
 
@@ -120,20 +117,20 @@ class Globe extends React.Component {
     const to = { lat: tweet.toLocationLat, lon: tweet.toLocationLong, loc: tweet.toLocation }
     const sentiment = tweet.sentiment.toLowerCase()
 
-    let vF = toWorld(from.lat, from.lon, EARTH_RADIUS)
-    let vT = toWorld(to.lat, to.lon, EARTH_RADIUS)
-    var dist = vF.distanceTo(vT)
+    const vF = toWorld(from.lat, from.lon, EARTH_RADIUS)
+    const vT = toWorld(to.lat, to.lon, EARTH_RADIUS)
+    const dist = vF.distanceTo(vT)
 
-    var cvT = vT.clone()
-    var cvF = vF.clone()
+    const cvT = vT.clone()
+    const cvF = vF.clone()
 
-    var xC = (0.5 * (vF.x + vT.x))
-    var yC = (0.5 * (vF.y + vT.y))
-    var zC = (0.5 * (vF.z + vT.z))
+    const xC = (0.5 * (vF.x + vT.x))
+    const yC = (0.5 * (vF.y + vT.y))
+    const zC = (0.5 * (vF.z + vT.z))
 
-    var mid = new THREE.Vector3(xC, yC, zC)
+    const mid = new THREE.Vector3(xC, yC, zC)
 
-    var smoothDist = map(dist, 0, 10, 0, 15 / dist)
+    const smoothDist = map(dist, 0, 10, 0, 15 / dist)
     
     mid.setLength(EARTH_RADIUS * smoothDist)
     
@@ -143,11 +140,11 @@ class Globe extends React.Component {
     cvT.setLength(EARTH_RADIUS * smoothDist)
     cvF.setLength(EARTH_RADIUS * smoothDist)
 
-    var curve = new THREE.CubicBezierCurve3(vF, cvF, cvT, vT)
-    var geometry2 = new THREE.Geometry()
-    geometry2.vertices = curve.getPoints(50)
+    const curve = new THREE.CubicBezierCurve3(vF, cvF, cvT, vT)
+    let pathGeometry = new THREE.Geometry()
+    pathGeometry.vertices = curve.getPoints(50)
 
-    var material2 = navigator.userAgent.match(/Android/i)
+    let pathMaterial = navigator.userAgent.match(/Android/i)
       ? new THREE.LineBasicMaterial({ color: sentiment == 'pos' ? BLUE : RED, linewidth: 3, opacity: 0.0, transparent: true })
       : new MeshLineMaterial({
           color: new THREE.Color(sentiment == 'pos' ? BLUE : RED),
@@ -155,9 +152,9 @@ class Globe extends React.Component {
         })
 
     // Create the final Object3d to add to the scene
-    var curveObject = new THREE.Line(geometry2, material2)
-    scene.add(curveObject)
-    this.animatePath(0, 1, 2000, curveObject)
+    const pathObject = new THREE.Line(pathGeometry, pathMaterial)
+    scene.add(pathObject)
+    this.animatePath(0, 1, 2000, pathObject)
 
     let isNeg = sentiment == 'pos'? false : true
     this.renderTweetInfo(text, mid, isNeg)

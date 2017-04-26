@@ -1,3 +1,6 @@
+// Globe: Vertex Shader
+// Author(s): Tamim Shaban & Prayash Thapa
+
 varying vec2 vUv;
 varying vec3 v_Normal;
 varying vec3 v_Position;
