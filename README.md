@@ -4,7 +4,7 @@ ATLS 4214 - Big Data Architecture Final Project
 
 By: Prayash Thapa, Tamim Shaban, Ashna Guliani, Mikhail Chowdhury
 
-(https://github.com/CUBigDataClass/A-Bit-of-Big-Data/blob/master/main/Screenshot_20170424-180325.png)
+![](https://github.com/CUBigDataClass/A-Bit-of-Big-Data/blob/master/main/Screenshot_20170424-180325.png)
 
 ## Installation
 
