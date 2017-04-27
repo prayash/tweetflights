@@ -1,28 +1,64 @@
 # A Bit of Big Data
 
+## Summary
+
 ## Installation
 
 ```
-- cd client && npm install
-- cd server && npm install
-- npm start
+cd client && npm install
+cd server && npm install
+
+Extract Kafka install folder to /kafka folder in root or repo
 ```
 
-## Connecting to EC2 Instance
-
-Store all your keys in ~/aws.
+## Build Front End
 
 ```
-./scripts/app to SSH into server machine
-./scripts/kafka to SSH into Kafka broker
+cd client && npm run build
 ```
 
-## Running
+## Connecting to EC2 Instance & Running
 
+1. SSH into EC2 Instace with screen
+
+2. If Zookeeper is not already running
 ```
-- (terminal 1) -> ~/kafka/bin/zookeeper-server-start.sh ~/kafka/config/zookeeper.properties
-- (terminal 2) -> ~/kafka/bin/kafka-server-start.sh ~/kafkaconfig/server.properties
-- (terminal 3) -> python2.7 app/app.py
-- (terminal 4) -> ~/spark/bin/spark-submit --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.1.0 stream.py localhost:9092 -> twitterstream
-- (terminal 5) -> ~/kafka/bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic twitterstream --from-beginning
+(terminal 1)
+cd bin/
+./1_zk.sh
+```
+
+3. Start Kafka
+```
+(terminal 2)
+cd bin/
+./2_kafka.sh
+```
+
+4. Start Python Tweet Producer Script
+**Note must be killed manually**
+```
+(terminal 3)
+cd bin/
+./3_app.sh
+```
+
+5. (Optional) View Tweets/messages in Kafka topic
+```
+(terminal 4)
+cd kafka/
+bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic twitterstream --from-beginning
+```
+
+6. Start Node Client
+```
+(terminal 5)
+cd bin/
+./5_client.sh
+```
+
+7. Start Node Server
+```
+(terminal 5)
+node server/index.js
 ```
