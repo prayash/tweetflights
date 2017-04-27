@@ -1,6 +1,9 @@
-# A Bit of Big Data
+# A 'Bit' of Big Data - TweetFlights
+
 
 ## Summary
+#### ATLS 4214 - Big Data Architecture Final Project
+#### By: Prayash Thapa, Tamim Shaban, Ashna Guliani, Mikhail Chowdhury
 
 ## Installation
 
@@ -36,7 +39,8 @@ cd bin/
 ```
 
 4. Start Python Tweet Producer Script
-**Note must be killed manually**
+
+**Note: script must be killed manually**
 ```
 (terminal 3)
 cd bin/
@@ -50,15 +54,15 @@ cd kafka/
 bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic twitterstream --from-beginning
 ```
 
-6. Start Node Client
+6. Start Node-Kafka Stream
 ```
 (terminal 5)
 cd bin/
-./5_client.sh
+./4_node.sh
 ```
 
 7. Start Node Server
 ```
-(terminal 5)
+(terminal 6)
 node server/index.js
 ```
