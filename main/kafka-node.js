@@ -84,9 +84,9 @@ io.on('connection', (socket) => {
   });
 
   socket.on('ack', () => {
-    if (data.fromLocation !== data.toLocation) {
+    // if (data.fromLocation !== data.toLocation) {
       socket.emit('tweet', data);
-    }
+    // }
   });
 });
 
