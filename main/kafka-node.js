@@ -45,7 +45,7 @@ let bunk = { topic: 'twitterstream',
   key: -1
 };
 
-let data = {
+let data = { 
   text: '@TomandSteveHost you got to hear this. https://t.co/HnHtHxYkyY',
   language: 'en',
   sentiment: 'Pos',
@@ -77,16 +77,16 @@ io.on('connection', (socket) => {
     }
 
     console.log(data);
-
-    socket.on('ack', () => {
-      if (data.fromLocation !== data.toLocation) {
-        socket.emit('tweet', data);
-      }
-    });
   });
 
   consumer.on('error', (err) => {
     console.log('error', err);
+  });
+
+  socket.on('ack', () => {
+    if (data.fromLocation !== data.toLocation) {
+      socket.emit('tweet', data);
+    }
   });
 });
 
