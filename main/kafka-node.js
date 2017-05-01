@@ -45,7 +45,7 @@ let bunk = { topic: 'twitterstream',
   key: -1
 };
 
-let data = { 
+let data = {
   text: '@TomandSteveHost you got to hear this. https://t.co/HnHtHxYkyY',
   language: 'en',
   sentiment: 'Pos',
