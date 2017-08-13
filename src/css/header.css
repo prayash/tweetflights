@@ -1,0 +1,27 @@
+:root {
+  --light: #EBEBEB;
+  --dark: #333333;
+  --gray: #969696;
+}
+
+#header {
+  width: 100%;
+  position: fixed;
+  color: color(var(--light) a(100%));
+  padding: 0 1em;
+  border-bottom: 1px solid color(var(--gray) a(35%));
+
+  .title {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 1.25em;
+    font-weight: 100;
+  }
+
+  .twitter-logo {
+    width: 35px;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 1em 0 0;
+  }
+}
